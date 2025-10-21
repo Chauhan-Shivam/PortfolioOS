@@ -1,0 +1,65 @@
+.window {
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.window.maximized {
+  border-radius: 0;
+  border: 0;
+}
+.window-header {
+  height: 30px;
+  background: rgba(230, 240, 255, 0.8);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px 0 10px;
+  cursor: grab;
+  flex-shrink: 0;
+}
+.window-header:active {
+  cursor: grabbing;
+}
+.window-title {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.window-title-icon {
+  width: 16px;
+  height: 16px;
+}
+.window-controls {
+  display: flex;
+}
+.window-btn {
+  width: 28px;
+  height: 22px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.window-btn:hover {
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+.window-btn.minimize:hover { background-color: #aae; }
+.window-btn.maximize:hover { background-color: #aea; }
+.window-btn.close:hover { background-color: #eaa; }
+
+.window-content {
+  flex-grow: 1;
+  background-color: #ffffff;
+  height: 100%;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  overflow: auto;
+  color: #000;
+}

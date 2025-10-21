@@ -1,0 +1,36 @@
+.calendar-popup {
+  position: absolute;
+  bottom: 45px;
+  right: 5px;
+  width: 250px;
+  border-radius: 4px;
+  padding: 10px;
+  z-index: 50001;
+  color: white;
+}
+.calendar-header {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  text-align: center;
+}
+.day-name {
+  font-size: 11px;
+  opacity: 0.8;
+}
+.day-number {
+  padding: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.day-number.today {
+  background-color: #3399ff;
+  border: 1px solid #66bbff;
+}

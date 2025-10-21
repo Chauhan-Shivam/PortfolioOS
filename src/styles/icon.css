@@ -1,0 +1,51 @@
+.desktop-icon {
+  position: absolute;
+  /* REMOVED: left and top properties are now handled by transform */
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  cursor: pointer;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  transition: background-color 0.1s;
+  /* ADDED: Will-change can improve rendering performance during transforms */
+  will-change: transform;
+}
+.desktop-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+.desktop-icon.dragging {
+  opacity: 0.8;
+  z-index: 10000;
+  /* Remove hover effect while dragging */
+  background: transparent;
+  border: none;
+}
+.icon-image {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 5px;
+  pointer-events: none;
+}
+.icon-title {
+  text-align: center;
+  word-break: break-word;
+  font-size: 12px;
+}
+.desktop-main.small-icons .desktop-icon { width: 80px; height: 80px; }
+.desktop-main.small-icons .icon-image { width: 32px; height: 32px; }
+.desktop-main.small-icons .icon-title { font-size: 11px; }
+
+.desktop-main.medium-icons .desktop-icon { width: 100px; height: 100px; }
+.desktop-main.medium-icons .icon-image { width: 48px; height: 48px; }
+.desktop-main.medium-icons .icon-title { font-size: 12px; }
+
+.desktop-main.large-icons .desktop-icon { width: 120px; height: 120px; }
+.desktop-main.large-icons .icon-image { width: 64px; height: 64px; }
+.desktop-main.large-icons .icon-title { font-size: 13px; }

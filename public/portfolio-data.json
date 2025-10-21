@@ -1,0 +1,102 @@
+{
+  "personalInfo": {
+    "name": "[Your Name]",
+    "tagline": "Software Developer | Web Enthusiast | Problem Solver",
+    "aboutContent": [
+      "Hello! I'm a passionate developer creating interactive and user-friendly web experiences.",
+      "This project is a portfolio built to look and feel like a classic Windows 7 desktop, showcasing my skills in React, TypeScript, and CSS. All the data you see, including this text, is loaded from this JSON file."
+    ],
+    "contact": {
+      "email": "your.email@example.com",
+      "linkedin": "linkedin.com/in/yourprofile",
+      "github": "github.com/yourusername"
+    }
+  },
+  "desktopConfig": {
+    "wallpapers": [
+      { "name": "Bliss", "path": "/wallpapers/bliss.jpg" },
+      { "name": "Windows 7", "path": "/wallpapers/windows7.jpg" }
+    ],
+    "icons": [
+      { "id": "about", "title": "About", "icon": "/icons/about.png" },
+      {
+        "id": "explorer",
+        "title": "File Explorer",
+        "icon": "/icons/projects.png",
+        "pinned": true
+      },
+      { "id": "games", "title": "Games", "icon": "/icons/games.png" },
+      {
+        "id": "browser",
+        "title": "Browser",
+        "icon": "/icons/browser.png",
+        "pinned": true
+      },
+      {
+        "id": "resume",
+        "title": "My Resume.pdf",
+        "icon": "/icons/pdf.png",
+        "filePath": "/My Resume.pdf"
+      },
+      {
+        "id": "profile",
+        "title": "Profile Image.jpg",
+        "icon": "/icons/image.png",
+        "filePath": "/profile-image.jpg"
+      }
+    ]
+  },
+  "fileSystem": {
+    "Desktop": {
+      "files": [
+        {
+          "id": "file-1",
+          "name": "README.md",
+          "type": "Text Document",
+          "dateModified": "2025-10-21 01:15 PM",
+          "icon": "/icons/file.png"
+        }
+      ]
+    },
+    "Documents": {
+      "files": [
+        {
+          "id": "file-2",
+          "name": "My Resume.pdf",
+          "type": "PDF Document",
+          "dateModified": "2025-10-20 09:00 AM",
+          "icon": "/icons/pdf.png"
+        }
+      ]
+    },
+    "Pictures": {
+      "files": [
+        {
+          "id": "file-3",
+          "name": "profile-pic.jpg",
+          "type": "JPEG Image",
+          "dateModified": "2025-08-11 05:45 PM",
+          "icon": "/icons/image.png"
+        }
+      ]
+    },
+    "Projects": {
+      "files": [
+        {
+          "id": "proj-1",
+          "name": "Portfolio Website",
+          "type": "File folder",
+          "dateModified": "2025-10-15 09:30 AM",
+          "icon": "/icons/folder.png"
+        },
+        {
+          "id": "proj-2",
+          "name": "Task Manager App",
+          "type": "File folder",
+          "dateModified": "2025-10-12 03:15 PM",
+          "icon": "/icons/folder.png"
+        }
+      ]
+    }
+  }
+}
