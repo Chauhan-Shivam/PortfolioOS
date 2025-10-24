@@ -1,0 +1,198 @@
+/* Inside src/styles/lockscreen.css */
+
+.lockscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000; /* This layer applies the blur */
+  display: flex; /* Still needed for centering content */
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px); /* Adjust blur amount */
+}
+
+.lockscreen-panel {
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  position: relative; 
+  z-index: 1; 
+}
+
+.lockscreen-avatar {
+  width: 128px;
+  height: 128px;
+  border-radius: 12px; /* More curved edges, still square-ish */
+  /* Glossy border effect */
+  border: 4px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 
+              inset 0 0 5px rgba(255, 255, 255, 0.5);
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.4)); /* Added drop shadow */
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.lockscreen-username {
+  font-size: 32px;
+  font-weight: 300;
+  margin: 0;
+}
+
+.lockscreen-status {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 5px 0 20px 0; /* Adjusted margin as Switch User button is gone */
+  height: 20px; /* Reserve space */
+  transition: color 0.2s;
+}
+
+.lockscreen-panel.shake .lockscreen-status {
+  color: #ffc2c2; /* Lighter red for error */
+}
+
+/* --- Form (Password + Button) --- */
+.lockscreen-panel form {
+  width: 250px;
+  margin-bottom: 20px; /* Adjusted margin as Switch User button is gone */
+}
+
+/* This wrapper creates the single-unit look */
+.input-group {
+  position: relative;
+  width: 100%;
+  border-radius: 6px;
+  background-color: white;
+  border: 1px solid #707070;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.lockscreen-input {
+  width: 100%;
+  padding: 10px 45px 10px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent; /* Border is on parent */
+  background-color: transparent;
+  color: #222; /* Dark text for a white input */
+  font-size: 14px;
+  box-sizing: border-box; /* Important */
+  /* Inset shadow like Windows 7 */
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+.lockscreen-input::placeholder {
+  color: #888;
+}
+.lockscreen-input:focus {
+  outline: none;
+  border-color: #0078d7; /* Blue focus glow */
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(0, 120, 215, 0.3);
+}
+
+
+.lockscreen-submit-btn {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: 32px;
+  border-radius: 4px;
+  border: 1px solid #005a9e; /* Darker blue border */
+  background-color: #0078d7; /* Blue background */
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.lockscreen-submit-btn:hover {
+  background-color: #006dd1; /* Slightly lighter blue on hover */
+  border-color: #004a8e;
+}
+.lockscreen-submit-btn:active {
+  background-color: #005a9e; /* Darker blue on active */
+  border-color: #003a7e;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* --- Shake Animation --- */
+.lockscreen-panel.shake {
+  animation: shake 0.5s ease-in-out;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+/* --- Power Button (Bottom Right) --- */
+.lockscreen-power-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 10001;
+}
+
+.lockscreen-power-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background-color: #006dd1;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 15px rgba(59, 85, 217, 0.5);
+}
+.lockscreen-power-btn:hover {
+  background-color: #005a9e;
+  box-shadow: 0 0 25px rgba(59, 85, 217, 0.8);
+  transform: scale(1.1);
+}
+
+/* Power Menu */
+.lockscreen-power-menu {
+  position: absolute;
+  bottom: 60px; /* Position above the power button */
+  right: 0;
+  width: 150px;
+  border-radius: 6px;
+  padding: 5px;
+  color: white;
+  /* Uses the 'glass' class for backdrop-filter */
+}
+.lockscreen-power-menu .power-menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.lockscreen-power-menu .power-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.lockscreen-os-name {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  color: white; /* Or your desired text color */
+  font-size: 1rem;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  z-index: 10;
+}
+
+.lockscreen-os-icon {
+  width: 25px; /* Adjust size as needed */
+  height: 25px;
+}

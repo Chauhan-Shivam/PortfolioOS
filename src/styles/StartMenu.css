@@ -67,11 +67,14 @@
   height: 60px;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
 }
 
 .user-name {
   color: #fff;
   font-weight: bold;
+  margin-left: 15px;
+  font-size: 16px;
 }
 
 .power-controls {
@@ -108,4 +111,25 @@
 
 .power-menu-item:hover {
   background: rgba(255,255,255,0.3);
+}
+/* Add this to the bottom of src/styles/startmenu.css */
+
+.power-controls {
+  /* This ensures buttons stack nicely from the right */
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px; /* Adds space between buttons */
+}
+
+.power-btn {
+  /* ... your existing styles ... */
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+/* Style for the new lock button */
+.lock-btn {
+  min-width: 40px; /* Give it a bit of space */
+  padding: 8px;
+  font-size: 14px;
 }
