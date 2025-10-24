@@ -1,36 +1,220 @@
+/* --- Main Popup Container (Your styles) --- */
 .calendar-popup {
   position: absolute;
+  /* Adjust these as needed for your app */
   bottom: 45px;
   right: 5px;
-  width: 250px;
-  border-radius: 4px;
-  padding: 10px;
-  z-index: 50001;
-  color: white;
+
+  /* --- Glass Effect --- */
+  background-color: var(--window-bg-color, rgba(43, 43, 43, 0.75)); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+  border: 1px solid var(--window-border-color, rgba(255, 255, 255, 0.2));
+  
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 280px; /* Fixed width */
+  user-select: none;
+  overflow: hidden; /* CRITICAL for animation */
+  color: var(--text-color, #eee);
+  padding: 0; 
+  z-index: 50001; /* Ensure it's on top */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
+
+/* --- Header (Your styles) --- */
 .calendar-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--window-border-color, rgba(255, 255, 255, 0.2));
+  /* Make header slightly more transparent than body for depth */
+  background-color: var(--taskbar-bg-color, rgba(34, 34, 34, 0.5));
   font-weight: bold;
-  text-align: center;
-  margin-bottom: 10px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 10;
 }
+
+.calendar-header .header-title.clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 6px;
+  transition: background-color 0.2s;
+  flex-grow: 1;
+  text-align: center;
+}
+.calendar-header .header-title.clickable:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-header .nav-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: var(--text-color, #eee);
+  line-height: 1;
+}
+.calendar-header .nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Grid & Cell Styles (Your styles) --- */
 .calendar-grid {
   display: grid;
+  padding: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+}
+
+.day-grid {
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  gap: 2px;
   text-align: center;
 }
+
 .day-name {
-  font-size: 11px;
-  opacity: 0.8;
+  font-weight: bold;
+  font-size: 0.8em;
+  padding: 4px 0;
+  color: #999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.day-number {
-  padding: 4px;
-  border-radius: 3px;
+
+.month-grid,
+.year-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px;
+}
+
+.calendar-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+  padding: 4px;
+  font-size: 0.85em;
+  min-height: 28px;
+  box-sizing: border-box;
 }
-.day-number.today {
-  background-color: #3399ff;
-  border: 1px solid #66bbff;
+.calendar-cell:hover:not(.today):not(.blank-cell) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.blank-cell {
+  cursor: default;
+}
+
+.month-cell,
+.year-cell {
+  padding: 12px 8px;
+  font-size: 0.9rem;
+}
+
+.day-number.today,
+.month-cell.today,
+.year-cell.today {
+  background-color: #0078d7;
+  color: white;
+  font-weight: bold;
+}
+.day-number.today:hover,
+.month-cell.today:hover,
+.year-cell.today:hover {
+  background-color: #005a9e;
+}
+
+
+/* --- === ANIMATION STYLES === --- */
+
+/* --- Wrapper --- */
+.calendar-content-wrapper {
+  position: relative;
+  height: 250px; /* Fixed height for stable animation */
+  overflow: hidden;
+}
+
+/* --- Grid Containers --- */
+.calendar-grid-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* This is the animation! */
+  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+}
+
+/* --- Initial Grid Positions --- */
+.current-view {
+  transform: translate(0, 0);
+  opacity: 1;
+  z-index: 10;
+}
+.previous-view {
+  transform: translateY(-100%); /* Start 100% *above* for scrolling */
+  opacity: 0;
+  z-index: 5;
+}
+.next-view {
+  transform: translateY(100%); /* Start 100% *below* for scrolling */
+  opacity: 0;
+  z-index: 5;
+}
+
+/* --- Animation: Vertical Slide (Scroll) --- */
+
+/* Sliding to PREVIOUS (up) */
+.up .current-view {
+  transform: translateY(100%); /* Current slides DOWN */
+  opacity: 0;
+}
+.up .previous-view {
+  transform: translate(0, 0); /* Previous slides IN from its start position (top) */
+  opacity: 1;
+  z-index: 10;
+}
+
+/* Sliding to NEXT (down) */
+.down .current-view {
+  transform: translateY(-100%); /* Current slides UP */
+  opacity: 0;
+}
+.down .next-view {
+  transform: translate(0, 0); /* Next slides IN from its start position (bottom) */
+  opacity: 1;
+  z-index: 10;
+}
+
+
+/* --- Animation: Zoom (View Change) --- */
+
+/* When zooming OUT (e.g., Days -> Months) */
+.zoom-out .current-view > .calendar-grid {
+  animation: zoomOut 0.25s ease-out forwards;
+}
+
+/* When zooming IN (e.g., Months -> Days) */
+.zoom-in .current-view > .calendar-grid {
+  animation: zoomIn 0.25s ease-out forwards;
+}
+
+@keyframes zoomOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
+}
+
+@keyframes zoomIn {
+  /* This creates a "fade-out" effect for the old view */
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.1); opacity: 0; }
 }

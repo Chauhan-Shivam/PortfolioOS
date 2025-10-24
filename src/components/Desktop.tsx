@@ -432,7 +432,6 @@ const Desktop: React.FC = () => {
       icon: icon.icon,
       action: () => openWindow(icon),
     }));
-    items.push({ label: '---', icon: '', action: () => {} });
     files.forEach(file => items.push({
       label: file.title,
       icon: file.icon,

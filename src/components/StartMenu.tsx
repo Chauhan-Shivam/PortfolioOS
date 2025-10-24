@@ -20,7 +20,7 @@ interface Props {
   onClose: () => void;
 }
 
-// --- Static Helper Functions ---
+// Static Helper Functions
 // These are defined outside the component because they do not
 // depend on props or state, preventing them from being recreated.
 
