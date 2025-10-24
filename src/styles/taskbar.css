@@ -23,7 +23,7 @@
   width: 40px;
   height: 40px;
   border: none;
-  background: url('/icons/start.png') center center / 32px no-repeat;
+  background: url('/icons/startmenu.png') center center / 32px no-repeat;
   cursor: pointer;
   transition: filter 0.2s;
 }

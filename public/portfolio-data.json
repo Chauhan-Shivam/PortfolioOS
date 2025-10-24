@@ -1,15 +1,15 @@
 {
   "personalInfo": {
-    "name": "[Your Name]",
-    "tagline": "Software Developer | Web Enthusiast | Problem Solver",
+    "name": "Shivam Chauhan",
+    "tagline": "React Developer | TypeScript Enthusiast | UI/UX Designer",
     "aboutContent": [
-      "Hello! I'm a passionate developer creating interactive and user-friendly web experiences.",
-      "This project is a portfolio built to look and feel like a classic Windows 7 desktop, showcasing my skills in React, TypeScript, and CSS. All the data you see, including this text, is loaded from this JSON file."
+      "Hello! I'm Shivam, a passionate developer creating interactive and user-friendly web experiences.",
+      "This project is a portfolio built to look and feel like a classic Windows 7 desktop."
     ],
     "contact": {
-      "email": "your.email@example.com",
-      "linkedin": "linkedin.com/in/yourprofile",
-      "github": "github.com/yourusername"
+      "email": "cshivam828@gmail.com",
+      "linkedin": "linkedin.com/in/shivamchauhan",
+      "github": "github.com/chauhan-shivam"
     }
   },
   "desktopConfig": {
@@ -18,14 +18,23 @@
       { "name": "Windows 7", "path": "/wallpapers/windows7.jpg" }
     ],
     "icons": [
-      { "id": "about", "title": "About", "icon": "/icons/about.png" },
+      {
+        "id": "about",
+        "title": "About",
+        "icon": "/icons/file.png"
+      },
       {
         "id": "explorer",
         "title": "File Explorer",
-        "icon": "/icons/projects.png",
+        "icon": "/icons/folder.png",
         "pinned": true
       },
-      { "id": "games", "title": "Games", "icon": "/icons/games.png" },
+      {
+        "id": "games",
+        "title": "Games",
+        "icon": "/icons/games.png",
+        "pinned": true
+      },
       {
         "id": "browser",
         "title": "Browser",
@@ -34,15 +43,15 @@
       },
       {
         "id": "resume",
-        "title": "My Resume.pdf",
+        "title": "Shivam's Resume.pdf",
         "icon": "/icons/pdf.png",
-        "filePath": "/My Resume.pdf"
+        "filePath": "/Shivam_s_Resume.pdf"
       },
       {
         "id": "profile",
-        "title": "Profile Image.jpg",
+        "title": "shivam.jpg",
         "icon": "/icons/image.png",
-        "filePath": "/profile-image.jpg"
+        "filePath": "/shivam.jpg"
       }
     ]
   },
@@ -62,7 +71,7 @@
       "files": [
         {
           "id": "file-2",
-          "name": "My Resume.pdf",
+          "name": "Shivam_s_Resume.pdf",
           "type": "PDF Document",
           "dateModified": "2025-10-20 09:00 AM",
           "icon": "/icons/pdf.png"
@@ -73,10 +82,10 @@
       "files": [
         {
           "id": "file-3",
-          "name": "profile-pic.jpg",
-          "type": "JPEG Image",
+          "name": "shivam.png",
+          "type": "png Image",
           "dateModified": "2025-08-11 05:45 PM",
-          "icon": "/icons/image.png"
+          "icon": "/icons/shivam.png"
         }
       ]
     },

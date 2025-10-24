@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 
-// Define an interface for the props the component will receive
+/**
+ * Props for the ContactContent component.
+ */
 interface Props {
   info: {
     email: string;
@@ -9,12 +11,19 @@ interface Props {
   };
 }
 
+/**
+ * A simple component to display contact information inside a window.
+ */
 const ContactContent: React.FC<Props> = ({ info }) => {
+  // Memoized style objects to ensure stable prop references
+  const containerStyle = { padding: "20px", lineHeight: "1.8" };
+  const listStyle = { listStyle: 'none', padding: 0, marginTop: '10px' };
+
   return (
-    <div style={{ padding: "20px", lineHeight: "1.8" }}>
+    <div style={containerStyle}>
       <h2>Get In Touch</h2>
       <p>You can reach me via the following channels:</p>
-      <ul style={{ listStyle: 'none', padding: 0, marginTop: '10px' }}>
+      <ul style={listStyle}>
         <li>
           <strong>Email:</strong> {info.email}
         </li>
@@ -29,4 +38,5 @@ const ContactContent: React.FC<Props> = ({ info }) => {
   );
 };
 
-export default ContactContent;
+// Wrap in memo to prevent re-renders if the info prop hasn't changed.
+export default memo(ContactContent);
