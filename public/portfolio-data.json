@@ -115,13 +115,6 @@
           "type": "Game Development (Unity)",
           "dateModified": "2024-06-30 11:00 AM",
           "icon": "/icons/games.png"
-        },
-        {
-          "id": "proj-4",
-          "name": "Java Development Intern (CodSoft)",
-          "type": "Internship Experience",
-          "dateModified": "2024-09-30 10:00 AM",
-          "icon": "/icons/file.png"
         }
       ]
     }
