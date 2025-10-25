@@ -51,7 +51,7 @@
       {
         "id": "profile",
         "title": "Shivam.jpg",
-        "icon": "/icons/image.png",
+        "icon": "/icons/img.png",
         "filePath": "/Shivam.jpg"
       }
     ]
@@ -88,7 +88,7 @@
           "name": "Shivam.jpg",
           "type": "jpg Image",
           "dateModified": "2025-08-11 05:45 PM",
-          "icon": "/icons/Shivam.jpg",
+          "icon": "/icons/img.png",
           "filePath": "/Shivam.jpg"
         }
       ]
@@ -98,16 +98,16 @@
         {
           "id": "proj-1",
           "name": "Portfolio Website",
-          "type": "File folder",
+          "type": "Web Link",
           "dateModified": "2025-10-15 09:30 AM",
-          "icon": "/icons/folder.png"
+          "icon": "/icons/browser.png"
         },
         {
           "id": "proj-2",
           "name": "Task Manager App",
-          "type": "File folder",
+          "type": "Web Link",
           "dateModified": "2025-10-12 03:15 PM",
-          "icon": "/icons/folder.png"
+          "icon": "/icons/browser.png"
         }
       ]
     }

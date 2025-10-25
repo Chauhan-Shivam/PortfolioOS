@@ -2,22 +2,23 @@ import React, { useMemo, useCallback, memo } from "react";
 import { Rnd, type Props as RndProps } from "react-rnd";
 import "../styles/window.css";
 import "../styles/global.css";
-import type { AppWindow } from "./Desktop";
+// Assuming AppWindow is defined in a type file, e.g., './Desktop'
+import type { AppWindow } from "./Desktop"; 
 
 interface WindowProps {
   /** The data object containing the window's state (id, title, position, etc.) */
   windowData: AppWindow;
-  /** Callback function to close the window. */
+  /** Callback function invoked when the 'close' button is clicked. */
   close: () => void;
-  /** Callback function to minimize the window. */
+  /** Callback function invoked when the 'minimize' button is clicked. */
   minimize: () => void;
-  /** Callback function to toggle the window's maximized state. */
+  /** Callback function invoked when the 'maximize' button or header is double-clicked. */
   toggleMaximize: () => void;
-  /** Callback function to bring the window to the front (highest z-index). */
+  /** Callback function invoked on mousedown to bring the window to the front (highest z-index). */
   bringToFront: () => void;
-  /** Callback fired when dragging stops. */
+  /** Callback fired when dragging stops, returning the new position. */
   onDragStop: (position: { x: number; y: number }) => void;
-  /** Callback fired when resizing stops. */
+  /** Callback fired when resizing stops, returning the new size and position. */
   onResizeStop: (
     size: { width: string; height: string },
     position: { x: number; y: number }
@@ -25,13 +26,15 @@ interface WindowProps {
 }
 
 /**
- * A draggable, resizable window component powered by react-rnd.
+ * A draggable, resizable, and memoized window component.
  *
- * This component is memoized (`React.memo`) for performance. It will only
- * re-render if its specific `windowData` prop or one of the callbacks changes.
+ * This component acts as the visual container for an application,
+ * handling its position, size, and state (maximized, z-index).
+ * It uses `react-rnd` for drag and resize functionality and `React.memo`
+ * to prevent unnecessary re-renders when other windows are manipulated.
  *
- * Callbacks and derived objects (`style`, `size`, `position`) are memoized
- * to ensure prop stability for the underlying <Rnd> component.
+ * The internal layout (header and content) is managed by a flexbox
+ * wrapper (`.window-body`) to avoid conflicts with react-rnd's handles.
  */
 const Window: React.FC<WindowProps> = ({
   windowData,
@@ -43,33 +46,33 @@ const Window: React.FC<WindowProps> = ({
   onResizeStop,
 }) => {
   /**
-   * Memoizes the `onDragStop` handler.
-   * This creates a stable function reference, preventing unnecessary
-   * re-renders of the <Rnd> component.
+   * Memoizes the `onDragStop` handler for `react-rnd`.
+   * The argument types are correctly inferred from RndProps["onDragStop"].
    */
   const handleDragStop: RndProps["onDragStop"] = useCallback(
     (_e: any, d: { x: any; y: any; }) => {
       onDragStop({ x: d.x, y: d.y });
     },
-    [onDragStop] // Dependency: Only re-create if the prop callback changes
+    [onDragStop]
   );
 
   /**
-   * Memoizes the `onResizeStop` handler.
-   * This creates a stable function reference and properly extracts
-   * the size and position data for the parent.
+   * Memoizes the `onResizeStop` handler for `react-rnd`.
+   * The argument types are correctly inferred from RndProps["onResizeStop"],
+   * resolving the previous 'implicitly has an any type' error.
    */
   const handleResizeStop: RndProps["onResizeStop"] = useCallback(
     (_e: any, _direction: any, ref: { style: { width: any; height: any; }; }, _delta: any, pos: { x: number; y: number; }) => {
-      onResizeStop({ width: ref.style.width, height: ref.style.height }, pos);
+      onResizeStop(
+        { width: ref.style.width, height: ref.style.height },
+        pos
+      );
     },
-    [onResizeStop] // Dependency: Only re-create if the prop callback changes
+    [onResizeStop]
   );
 
   /**
-   * Memoizes the `style` object.
-   * This ensures the `style` prop passed to <Rnd> is stable
-   * as long as the z-index hasn't changed.
+   * Memoizes the `style` object for `react-rnd`.
    */
   const windowStyle = useMemo(
     () => ({
@@ -79,9 +82,7 @@ const Window: React.FC<WindowProps> = ({
   );
 
   /**
-   * Memoizes the `size` object.
-   * This prevents a new object from being created on every render,
-   * especially when toggling the maximized state.
+   * Memoizes the `size` object for `react-rnd`, handling the maximized state.
    */
   const windowSize = useMemo(
     () =>
@@ -92,9 +93,7 @@ const Window: React.FC<WindowProps> = ({
   );
 
   /**
-   * Memoizes the `position` object.
-   * This prevents a new object from being created on every render,
-   * especially when toggling the maximized state.
+   * Memoizes the `position` object for `react-rnd`, handling the maximized state.
    */
   const windowPosition = useMemo(
     () => (windowData.maximized ? { x: 0, y: 0 } : windowData.position),
@@ -104,54 +103,57 @@ const Window: React.FC<WindowProps> = ({
   return (
     <Rnd
       className={`window glass ${windowData.maximized ? "maximized" : ""}`}
-      // Use the memoized values for props
       size={windowSize}
       position={windowPosition}
       style={windowStyle}
-      // Use the memoized handlers
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
-      // Standard props
       minWidth={320}
       minHeight={240}
       bounds="parent"
       enableResizing={!windowData.maximized}
       disableDragging={windowData.maximized}
-      onMouseDown={bringToFront} // Passed directly (assumed stable from parent)
+      onMouseDown={bringToFront}
       dragHandleClassName="window-header"
     >
-      <div className="window-header" onDoubleClick={toggleMaximize}>
-        <div className="window-title">
-          <img src={windowData.icon} alt="" className="window-title-icon" />
-          {windowData.title}
+      {/* The .window-body wrapper ensures the internal flex layout
+        does not interfere with react-rnd's resize handles.
+      */}
+      <div className="window-body">
+        <div className="window-header" onDoubleClick={toggleMaximize}>
+          <div className="window-title">
+            <img src={windowData.icon} alt="" className="window-title-icon" />
+            {windowData.title}
+          </div>
+          <div className="window-controls">
+            <button
+              className="window-btn minimize"
+              onClick={minimize}
+              aria-label="Minimize"
+            >
+              ─
+            </button>
+            <button
+              className="window-btn maximize"
+              onClick={toggleMaximize}
+              aria-label="Maximize"
+            >
+              □
+            </button>
+            <button
+              className="window-btn close"
+              onClick={close}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
         </div>
-        <div className="window-controls">
-          {/* These callbacks are passed directly (assumed stable from parent) */}
-          <button
-            className="window-btn minimize"
-            onClick={minimize}
-            aria-label="Minimize"
-          >
-            ─
-          </button>
-          <button
-            className="window-btn maximize"
-            onClick={toggleMaximize}
-            aria-label="Maximize"
-          >
-            □
-          </button>
-          <button className="window-btn close" onClick={close} aria-label="Close">
-            ✕
-          </button>
-        </div>
+        <div className="window-content">{windowData.content}</div>
       </div>
-      <div className="window-content">{windowData.content}</div>
     </Rnd>
   );
 };
 
-// Wrap the component in React.memo for a significant performance boost.
-// This will prevent the window from re-rendering if its props haven't changed,
-// e.g., when another window is being moved.
+// Memoize the component for performance.
 export default memo(Window);

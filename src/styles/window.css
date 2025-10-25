@@ -1,40 +1,80 @@
+/*
+ * window.css
+ * Styles for the <Window> component.
+ */
+
+/**
+ * The main <Rnd> component container.
+ * It should NOT have display:flex, as that conflicts
+ * with the react-rnd resize handles.
+ * Its only job is to be the positioned, resizable box.
+ */
 .window {
   border-radius: 6px;
-  display: flex;
-  flex-direction: column;
+  /* Glass effect (optional) */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
+
 .window.maximized {
   border-radius: 0;
   border: 0;
 }
+
+/**
+ * NEW: The internal flex wrapper.
+ * This div *inside* the <Rnd> component handles the
+ * internal layout (stacking header and content).
+ */
+.window-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  /* This prevents the wrapper from interfering with the parent's border radius */
+  border-radius: inherit; 
+  overflow: hidden; /* Clips the children to the rounded corners */
+}
+
+/**
+ * Window Header
+ * Acts as the drag handle (via dragHandleClassName in <Rnd>)
+ */
 .window-header {
   height: 30px;
   background: rgba(230, 240, 255, 0.8);
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  /* Removed border-radius, as the parent .window-body now handles clipping */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 5px 0 10px;
   cursor: grab;
-  flex-shrink: 0;
+  flex-shrink: 0; /* Prevents the header from shrinking */
+  user-select: none; /* Prevents text selection while dragging */
 }
+
 .window-header:active {
   cursor: grabbing;
 }
+
 .window-title {
   font-weight: bold;
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .window-title-icon {
   width: 16px;
   height: 16px;
 }
+
 .window-controls {
   display: flex;
 }
+
 .window-btn {
   width: 28px;
   height: 22px;
@@ -47,19 +87,34 @@
   align-items: center;
   justify-content: center;
 }
+
 .window-btn:hover {
   border: 1px solid rgba(0, 0, 0, 0.3);
 }
-.window-btn.minimize:hover { background-color: #aae; }
-.window-btn.maximize:hover { background-color: #aea; }
-.window-btn.close:hover { background-color: #eaa; }
+.window-btn.minimize:hover {
+  background-color: #aae;
+}
+.window-btn.maximize:hover {
+  background-color: #aea;
+}
+.window-btn.close:hover {
+  background-color: #eaa;
+}
 
+/**
+ * Window Content Area
+ * This is the scrollable content area.
+ */
 .window-content {
-  flex-grow: 1;
+  flex-grow: 1; /* Takes up all remaining vertical space */
   background-color: #ffffff;
-  height: 100%;
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-  overflow: auto;
+  overflow: auto; /* Adds scrollbars ONLY if content overflows */
   color: #000;
+  
+  /* A flexbox fix to prevent content from overflowing 
+     its container in some browsers */
+  min-height: 0;
+  
+  /* Optional: Add padding to the content area */
+  padding: 10px;
 }
