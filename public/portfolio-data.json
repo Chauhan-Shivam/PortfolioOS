@@ -50,9 +50,9 @@
       },
       {
         "id": "profile",
-        "title": "shivam.jpg",
+        "title": "Shivam.jpg",
         "icon": "/icons/image.png",
-        "filePath": "/shivam.jpg"
+        "filePath": "/Shivam.jpg"
       }
     ]
   },
@@ -64,7 +64,8 @@
           "name": "README.md",
           "type": "Text Document",
           "dateModified": "2025-10-21 01:15 PM",
-          "icon": "/icons/file.png"
+          "icon": "/icons/file.png",
+          "filePath": "/README.md"
         }
       ]
     },
@@ -75,7 +76,8 @@
           "name": "Shivam_s_Resume.pdf",
           "type": "PDF Document",
           "dateModified": "2025-10-20 09:00 AM",
-          "icon": "/icons/pdf.png"
+          "icon": "/icons/pdf.png",
+          "filePath": "/Shivam_s_Resume.pdf"
         }
       ]
     },
@@ -83,10 +85,11 @@
       "files": [
         {
           "id": "file-3",
-          "name": "shivam.png",
-          "type": "png Image",
+          "name": "Shivam.jpg",
+          "type": "jpg Image",
           "dateModified": "2025-08-11 05:45 PM",
-          "icon": "/icons/shivam.png"
+          "icon": "/icons/Shivam.jpg",
+          "filePath": "/Shivam.jpg"
         }
       ]
     },
