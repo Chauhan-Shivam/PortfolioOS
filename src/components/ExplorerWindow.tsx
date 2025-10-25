@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import '../styles/explorer.css';
 
 export interface SubFile {
@@ -23,7 +23,8 @@ interface ExplorerWindowProps {
 
 /**
  * A component that simulates a file explorer window, with a navigation
- * pane on the left and a file content pane on the right.
+ * pane on the left and a file content pane on the right, now featuring
+ * resizable columns.
  */
 const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   fileSystem,
@@ -31,57 +32,74 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   onLocationChange,
   openFile,
 }) => {
-  /**
-   * State to keep track of the currently selected file's ID.
-   */
+  // --- STATE ---
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
-  /**
-   * Memoized list of navigation locations (e.g., "Projects", "Documents").
-   * This array is only recalculated when the fileSystem prop changes.
-   */
+  // Initial column widths: Set Name to a fixed pixel width (not 1fr) 
+  // to prevent infinite stretching when the window is wide.
+  const [gridColumnWidths, setGridColumnWidths] = useState({
+    name: '250px', 
+    date: '160px',
+    type: '120px',
+  });
+
+  // State to track resizing in progress
+  const [isResizing, setIsResizing] = useState<boolean>(false);
+  const resizeRef = useRef<{ 
+    initialX: number; 
+    colId: 'name' | 'date' | 'type'; 
+    initialWidth: number;
+    containerWidth: number;
+  } | null>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  // --- MEMOIZED DATA ---
+
   const locations = useMemo(() => Object.keys(fileSystem), [fileSystem]);
 
-  /**
-   * Memoized list of files to display in the main pane.
-   * This array is only recalculated when the fileSystem or currentLocation props change.
-   */
   const filesToShow = useMemo(
     () => fileSystem[currentLocation]?.files || [],
     [fileSystem, currentLocation]
   );
+  
+  /**
+   * Generates the CSS grid-template-columns value from the state.
+   */
+  const gridColumnsStyle = useMemo(() => 
+    `${gridColumnWidths.name} ${gridColumnWidths.date} ${gridColumnWidths.type}`,
+    [gridColumnWidths]
+  );
+
+  // --- CALLBACKS: UI INTERACTION ---
 
   /**
-   * Handles clicks on the left navigation pane using event delegation.
-   * Reads the 'data-location' attribute from the clicked .nav-item.
+   * Handles navigation clicks.
    */
   const handleNavClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    // Find the closest ancestor with the .nav-item class
     const navItem = target.closest<HTMLElement>('.nav-item');
     const location = navItem?.dataset.location;
 
     if (location) {
       onLocationChange(location);
     }
-  }, [onLocationChange]); // Dependency: The prop function it needs to call
+  }, [onLocationChange]);
 
   /**
-   * Handles single clicks on the main file body using event delegation.
-   * Reads the 'data-file-id' attribute to set the selected file.
+   * Handles single clicks on files.
    */
   const handleFileClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+    // Don't deselect if we are clicking the resize handle
+    if (target.classList.contains('resize-handle')) return;
+
     const row = target.closest<HTMLElement>('.explorer-row');
     const fileId = row?.dataset.fileId;
-
-    // Set the selected file ID, or null if clicking outside a row
     setSelectedFile(fileId || null);
-  }, []); // Dependency: setSelectedFile is stable and doesn't need to be listed
+  }, []);
 
   /**
-   * Handles double clicks on the main file body using event delegation.
-   * Reads the 'data-file-id', finds the matching file object, and calls openFile.
+   * Handles double clicks on files to open them.
    */
   const handleFileDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
@@ -94,21 +112,93 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
         openFile(fileToOpen);
       }
     }
-  }, [filesToShow, openFile]); // Dependencies: The data and the prop function
+  }, [filesToShow, openFile]);
+  
+  // --- CALLBACKS: COLUMN RESIZING LOGIC ---
+  
+  /**
+   * Initiates the resize process on mouse down on a drag handle.
+   */
+  const startResize = useCallback((e: React.MouseEvent, colId: 'name' | 'date' | 'type') => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    // Extract the pixel width of the current column
+    const currentWidthPx = headerRef.current?.querySelector(`.explorer-cell.${colId}`)?.clientWidth || 0;
+
+    resizeRef.current = {
+      initialX: e.clientX,
+      colId: colId,
+      initialWidth: currentWidthPx,
+      containerWidth: headerRef.current?.clientWidth || 0,
+    };
+  }, []);
+
+  /**
+   * Handles mouse move events during a resize drag.
+   */
+  const resizeColumn = useCallback((e: MouseEvent) => {
+    if (!isResizing || !resizeRef.current) return;
+
+    const { initialX, colId, initialWidth } = resizeRef.current;
+    const dx = e.clientX - initialX;
+    
+    // Add the drag distance (dx) to increase column width when dragging right.
+    let newWidth = initialWidth + dx; 
+
+    // Apply minimum width constraints (e.g., 60px)
+    if (newWidth < 60) {
+      newWidth = 60;
+    }
+    
+    // Update the state with the new pixel width
+    setGridColumnWidths(prev => ({
+      ...prev,
+      [colId]: `${newWidth}px`,
+    }));
+  }, [isResizing]);
+
+  /**
+   * Finalizes the resize process on mouse up.
+   */
+  const stopResize = useCallback(() => {
+    setIsResizing(false);
+    resizeRef.current = null;
+  }, []);
+
+  // --- EFFECT: BIND GLOBAL EVENT LISTENERS ---
+  
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', resizeColumn);
+      document.addEventListener('mouseup', stopResize);
+      document.body.style.cursor = 'col-resize'; 
+    } else {
+      document.removeEventListener('mousemove', resizeColumn);
+      document.removeEventListener('mouseup', stopResize);
+      document.body.style.cursor = 'default';
+    }
+    
+    // Cleanup function 
+    return () => {
+      document.removeEventListener('mousemove', resizeColumn);
+      document.removeEventListener('mouseup', stopResize);
+      document.body.style.cursor = 'default';
+    };
+  }, [isResizing, resizeColumn, stopResize]); 
+
+  // --- RENDER ---
 
   return (
-    <div className="explorer-window">
+    // Apply the custom CSS variable for the grid columns
+    <div className="explorer-window" style={{ '--grid-columns': gridColumnsStyle } as React.CSSProperties}>
       {/* Left Navigation Pane */}
-      {/* A single click handler is attached here for event delegation.
-        This is more performant than adding a new function to every item.
-      */}
       <div className="explorer-nav" onClick={handleNavClick}>
         <div className="nav-header">Favorites</div>
         {locations.map(loc => (
           <div
             key={loc}
             className={`nav-item ${currentLocation === loc ? 'active' : ''}`}
-            // The 'data-location' attribute is used by the delegated handler
             data-location={loc}
           >
             {loc}
@@ -124,14 +214,36 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
         </div>
 
         <div className="explorer-content">
-          <div className="explorer-header">
-            <div className="explorer-cell name">Name</div>
-            <div className="explorer-cell date">Date modified</div>
-            <div className="explorer-cell type">Type</div>
+          {/* Header row, used to track column widths and attach handlers */}
+          <div className="explorer-header" ref={headerRef}>
+            
+            {/* Handle to resize the Name column (between Name and Date) */}
+            <div className="explorer-cell name">
+              Name
+              <div 
+                className="resize-handle" 
+                onMouseDown={(e) => startResize(e, 'name')} 
+                data-column="name"
+              />
+            </div>
+            
+            <div className="explorer-cell date">
+              Date modified
+              {/* Handle to resize the Date column (between Date and Type) */}
+              <div 
+                className="resize-handle" 
+                onMouseDown={(e) => startResize(e, 'date')} 
+                data-column="date"
+              />
+            </div>
+            
+            <div className="explorer-cell type">
+              Type
+              {/* REMOVED: No handle here, as there is nothing to resize to the right. */}
+            </div>
           </div>
 
-          {/* Delegated click and double-click handlers are attached to the body.
-          */}
+          {/* Delegated click and double-click handlers are attached to the body. */}
           <div
             className="explorer-body"
             onClick={handleFileClick}
@@ -141,7 +253,6 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
               <div
                 key={file.id}
                 className={`explorer-row ${selectedFile === file.id ? 'selected' : ''}`}
-                // The 'data-file-id' is used by the delegated handlers
                 data-file-id={file.id}
               >
                 <div className="explorer-cell name">
