@@ -19,7 +19,6 @@ type SingleGridData = {
   yearGrid: number[];
 };
 
-// --- Helper function to calculate a single grid's data ---
 const calculateGridData = (
   baseDate: Date,
   view: CalendarView
@@ -45,7 +44,6 @@ const calculateGridData = (
       data.days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
       break;
     case "months":
-      // Nothing extra needed
       break;
     case "years":
       data.decadeStart = Math.floor(year / 10) * 10;
@@ -59,18 +57,14 @@ const calculateGridData = (
 };
 
 const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
-  // --- 1. Hooks ---
   const [displayDate, setDisplayDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>("days");
   const [animationDirection, setAnimationDirection] = useState<
     "zoom-in" | "zoom-out" | "up" | "down" | null
   >(null);
 
-  // --- FIX 1: Re-add the isScrolling ref ---
-  // This is our manual lock
   const isScrolling = useRef(false);
 
-  // --- Calculate all three grids (prev, current, next) ---
   const { prevGridData, currentGridData, nextGridData } = useMemo(() => {
     let prevDate: Date;
     let nextDate: Date;
@@ -121,7 +115,6 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
     };
   }, [displayDate, view]);
 
-  // --- "Today" Calculation ---
   const { todayDate, todayMonth, todayYear } = useMemo(() => {
     const now = new Date();
     return {
@@ -130,8 +123,6 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
       todayYear: now.getFullYear(),
     };
   }, []);
-
-  // --- Helper to change date/view and trigger animation ---
   const changeActiveDisplay = useCallback(
     (
       newDate: Date | null,
@@ -143,8 +134,8 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
       setTimeout(() => {
         if (newDate) setDisplayDate(newDate);
         if (newView) setView(newView);
-        setAnimationDirection(null); // Reset animation state
-      }, 250); // Matches CSS transition duration
+        setAnimationDirection(null); 
+      }, 250);
     },
     []
   );
@@ -158,14 +149,11 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
   );
 
   const handlePrev = useCallback(() => {
-    // We check the lock here too, to prevent clicks
-    // during a scroll animation.
     if (isScrolling.current) return;
     changeActiveDisplay(prevGridData.date, null, "up");
   }, [changeActiveDisplay, prevGridData.date]);
 
   const handleNext = useCallback(() => {
-    // We check the lock here too
     if (isScrolling.current) return;
     changeActiveDisplay(nextGridData.date, null, "down");
   }, [changeActiveDisplay, nextGridData.date]);
@@ -194,47 +182,32 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
     [currentGridData.displayMonth, changeActiveDisplay]
   );
 
-  // --- ============================================ ---
-  // --- THIS IS THE CORRECTED FUNCTION ---
-  // --- ============================================ ---
   const handleWheelScroll = useCallback(
     (e: React.WheelEvent<HTMLDivElement>) => {
       if (view !== "days") return;
 
       e.preventDefault();
 
-      // --- FIX 2: Use the isScrolling.current ref as the lock ---
       if (isScrolling.current) {
         return;
       }
-      // Set the lock
       isScrolling.current = true;
-
-      // Determine direction and trigger animation
       if (e.deltaY > 1) {
-        // Scroll down -> next month
         changeActiveDisplay(nextGridData.date, null, "down");
       } else if (e.deltaY < -1) {
-        // Scroll up -> prev month
         changeActiveDisplay(prevGridData.date, null, "up");
       } else {
-        // No significant scroll, release the lock immediately
         isScrolling.current = false;
         return;
       }
 
-      // --- FIX 3: Release the lock after a "cooldown" period ---
-      // This duration MUST be longer than the 250ms animation
-      // to prevent race conditions.
       setTimeout(() => {
         isScrolling.current = false;
-      }, 350); // 350ms is a safe cooldown
+      }, 350);
     },
-    // Dependencies no longer need animationDirection
     [view, changeActiveDisplay, prevGridData.date, nextGridData.date]
   );
 
-  // --- Memoized Header String ---
   const headerString = useMemo(() => {
     switch (view) {
       case "days":
@@ -251,12 +224,10 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
     }
   }, [view, currentGridData]);
 
-  // --- Conditional Return ---
   if (!open) {
     return null;
   }
 
-  // --- Render Function for Grids ---
   const renderGrid = (gridData: SingleGridData, isPrevNext = false) => {
     const keyPrefix = isPrevNext ? "prev-next-" : "";
 
@@ -349,7 +320,6 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
     }
   };
 
-  // --- FINAL JSX ---
   return (
     <div
       className="calendar-popup"

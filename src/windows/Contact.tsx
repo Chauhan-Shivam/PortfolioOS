@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 
 /**
  * Props for the ContactContent component.
@@ -38,5 +38,4 @@ const ContactContent: React.FC<Props> = ({ info }) => {
   );
 };
 
-// Wrap in memo to prevent re-renders if the info prop hasn't changed.
 export default memo(ContactContent);

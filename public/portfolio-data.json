@@ -1,15 +1,15 @@
 {
   "personalInfo": {
     "name": "Shivam Chauhan",
-    "tagline": "React Developer | TypeScript Enthusiast | UI/UX Designer",
+    "tagline": "Systems | Machine Learning | Game Development",
     "aboutContent": [
-      "Hello! I'm Shivam, a passionate developer creating interactive and user-friendly web experiences.",
-      "This project is a portfolio built to look and feel like a classic Windows 7 desktop."
+      "Hello! I'm Shivam, a passionate developer with a B.Tech in Computer Science and Engineering (IoT Specialization).",
+      "I specialize in leveraging Python, Java, and C# for projects spanning real-time sign language conversion, game development (Unity3D), and full-stack web applications (Django)."
     ],
     "contact": {
       "email": "cshivam828@gmail.com",
-      "linkedin": "linkedin.com/in/shivamchauhan",
-      "github": "github.com/chauhan-shivam"
+      "linkedin": "linkedin.com/in/shivam-chauhan-05a289261",
+      "github": "Github.com/Chauhan-Shivam"
     },
     "passwordHint": "Hint: The password is '1234'"
   },
@@ -97,17 +97,31 @@
       "files": [
         {
           "id": "proj-1",
-          "name": "Portfolio Website",
-          "type": "Web Link",
-          "dateModified": "2025-10-15 09:30 AM",
-          "icon": "/icons/browser.png"
+          "name": "Sign Language Converter",
+          "type": "Project Details",
+          "dateModified": "2025-05-25 09:30 AM",
+          "icon": "/icons/folder.png"
         },
         {
           "id": "proj-2",
-          "name": "Task Manager App",
-          "type": "Web Link",
-          "dateModified": "2025-10-12 03:15 PM",
+          "name": "Affirmation Suggesting Dashboard",
+          "type": "Web Link (Django)",
+          "dateModified": "2024-11-01 03:15 PM",
           "icon": "/icons/browser.png"
+        },
+        {
+          "id": "proj-3",
+          "name": "Gesture Controlled Car Game",
+          "type": "Game Development (Unity)",
+          "dateModified": "2024-06-30 11:00 AM",
+          "icon": "/icons/games.png"
+        },
+        {
+          "id": "proj-4",
+          "name": "Java Development Intern (CodSoft)",
+          "type": "Internship Experience",
+          "dateModified": "2024-09-30 10:00 AM",
+          "icon": "/icons/file.png"
         }
       ]
     }
