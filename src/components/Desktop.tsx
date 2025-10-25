@@ -12,14 +12,15 @@ import StartMenu, { type StartMenuItem } from "./StartMenu";
 import BlueScreen from "./BlueScreen";
 import Calendar from "./Calendar";
 import ContextMenu, { type ContextMenuItem } from "./contextMenu";
-import Lockscreen from "./Lockscreen"; // Ensure this is imported
+import Lockscreen from "./Lockscreen";
 import "../styles/desktop.css";
 
 // Import window content components
 import AboutContent from "../windows/About";
-import ProjectsContent from "../windows/Projects";
+import Projects from "../windows/Projects"; // Correct import
 import GamesContent from "../windows/Games";
 import ContactContent from "../windows/Contact";
+import IframeContent from "../windows/IFrameContent"; // <--- IFRAME IMPORT ADDED BACK
 
 // --- Interfaces & Constants ---
 
@@ -138,22 +139,17 @@ const Desktop: React.FC = () => {
    */
   const openWindow = useCallback(
     (iconDef: DesktopIconDef) => {
-      // 1. Handle external file links
-      if (iconDef.filePath) {
-        window.open(iconDef.filePath, "_blank");
-        return;
-      }
-
-      // 2. Handle apps with no content (e.g., BSOD trigger)
-      if (!iconDef.content) {
+      // 1. Handle apps with no content (e.g., BSOD trigger)
+      //    We check for filePath here so iframe windows still open
+      if (!iconDef.content && !iconDef.filePath) {
         if (iconDef.id === "browser") {
           setBsod(true);
           setTimeout(() => setBsod(false), 2000);
+          return; // Return ONLY for the BSOD case
         }
-        return;
       }
 
-      // 3. Handle regular app windows
+      // 2. Handle regular app windows (and iframe windows)
       setWindows((prev) => {
         const found = prev.find((w) => w.id === iconDef.id);
 
@@ -173,8 +169,18 @@ const Desktop: React.FC = () => {
           ? (desktopRect.height - (DEFAULT_WINDOW_SIZE.height as number)) / 2
           : 100;
 
+        // --- IFRAME LOGIC ADDED BACK ---
+        let content: React.ReactNode;
+        if (iconDef.filePath) {
+          content = <IframeContent filePath={iconDef.filePath} />;
+        } else {
+          content = iconDef.content;
+        }
+        // ---------------------------------
+
         const newWin: AppWindow = {
           ...iconDef,
+          content: content, // Use the determined content
           minimized: false,
           maximized: false,
           zIndex: newZ,
@@ -422,8 +428,11 @@ const Desktop: React.FC = () => {
         switch (icon.id) {
           case "about":
             return <AboutContent info={data.personalInfo} />;
-          case "explorer":
-            return <ProjectsContent portfolioData={data} />;
+            
+          // --- PROJECTS ID FIX ---
+          case "projects":
+            return <Projects portfolioData={data} openWindow={openWindow}/>;
+            
           case "games":
             return <GamesContent />;
           case "browser":

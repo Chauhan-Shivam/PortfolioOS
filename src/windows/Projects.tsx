@@ -1,5 +1,12 @@
+// This file is likely named Projects.tsx (which exports ProjectsContent)
+// based on your Desktop.tsx import
+
 import React, { useState, useMemo, useCallback } from "react";
 import ExplorerWindow, { type SubFile } from "../components/ExplorerWindow";
+
+// You may need to import this type from your Desktop.tsx file,
+// or you can just use 'any' in the prop definition below.
+import type { DesktopIconDef } from "../components/Desktop"; 
 
 interface PortfolioData {
   desktopConfig: {
@@ -14,70 +21,75 @@ interface PortfolioData {
 
 interface Props {
   portfolioData: PortfolioData;
+  openWindow: (iconDef: DesktopIconDef) => void; // <-- 1. ACCEPT THE PROP
 }
 
 /**
  * A component that wraps the ExplorerWindow to display the user's projects
  * and other file system data.
  */
-const ProjectsContent: React.FC<Props> = ({ portfolioData }) => {
-  /**
-   * State for the currently selected location (e.g., "Projects", "Desktop")
-   * in the ExplorerWindow's navigation pane.
-   */
-  const [currentLocation, setCurrentLocation] = useState("Projects");
-
+const ProjectsContent: React.FC<Props> = ({ portfolioData, openWindow }) => {
   /**
    * Memoized file system data.
-   * This dynamically merges the static file system from props with
-   * the desktop icons (as shortcuts).
-   * This is memoized so it only recalculates when portfolioData changes,
-   * not on every render (e.g., when currentLocation changes).
    */
   const dynamicFileSystem = useMemo(() => {
-    // Create a new "Desktop" location that lists all desktop icons as files
     const desktopFiles = portfolioData.desktopConfig.icons.map((icon: any) => ({
       id: `desktop-shortcut-${icon.id}`,
       name: icon.title,
       type: "Shortcut",
-      dateModified: "", // Shortcuts don't have a modification date
+      dateModified: "", 
       icon: icon.icon,
-      // Carry over the filePath so opening the "shortcut" works
       filePath: icon.filePath,
     }));
 
-    // Return the original file system with the new "Desktop" location merged in
     return {
       ...portfolioData.fileSystem,
       Desktop: {
         files: desktopFiles,
       },
     };
-  }, [portfolioData]); // Dependency: Only recalculate if portfolioData changes
+  }, [portfolioData]); 
+
+  const availableLocations = useMemo(
+    () => Object.keys(dynamicFileSystem),
+    [dynamicFileSystem]
+  );
+
+  const [currentLocation, setCurrentLocation] = useState(
+    () => availableLocations[0] || "Desktop"
+  );
 
   /**
-   * Memoized callback for handling file "open" events from the ExplorerWindow.
-   * This is wrapped in useCallback to ensure a stable function reference is
-   * passed to ExplorerWindow, preventing unnecessary re-renders.
+   * Memoized callback for handling file "open" events.
    */
   const handleOpenFile = useCallback((file: SubFile) => {
     if (file.filePath) {
-      // If the file has a path, open it in a new tab
-      window.open(file.filePath, "_blank");
+      // --- 2. THIS IS THE FIX ---
+      // Convert the 'SubFile' into a 'DesktopIconDef'
+      // that openWindow understands.
+      const iconToOpen: DesktopIconDef = {
+        id: file.id,
+        title: file.name,
+        icon: file.icon,
+        filePath: file.filePath,
+        content: null, // It's a file, so no React content
+      };
+      // Use the function from Desktop.tsx
+      openWindow(iconToOpen);
+      
     } else {
-      // If it's a folder or non-file, show a simple alert
       alert(
         `File not Found\n'${file.name}' may have been moved, renamed, or deleted.`
       );
     }
-  }, []); // Empty dependency array: This function never needs to be recreated
+  }, [openWindow]); // <-- 3. ADD openWindow as a dependency
 
   return (
     <ExplorerWindow
-      fileSystem={dynamicFileSystem} // Pass the memoized file system
+      fileSystem={dynamicFileSystem}
       currentLocation={currentLocation}
-      onLocationChange={setCurrentLocation} // setState functions are stable
-      openFile={handleOpenFile} // Pass the memoized open handler
+      onLocationChange={setCurrentLocation}
+      openFile={handleOpenFile} // Pass the NEW handler
     />
   );
 };

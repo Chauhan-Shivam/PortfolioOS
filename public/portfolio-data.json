@@ -25,7 +25,7 @@
         "icon": "/icons/file.png"
       },
       {
-        "id": "explorer",
+        "id": "projects",
         "title": "File Explorer",
         "icon": "/icons/folder.png",
         "pinned": true
