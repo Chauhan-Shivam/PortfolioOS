@@ -1,5 +1,5 @@
 import React, { useState, forwardRef, useRef, useLayoutEffect } from 'react';
-import '../styles/contextMenu.css';
+import '../styles/contextmenu.css';
 
 export interface ContextMenuItem {
   label?: string;
