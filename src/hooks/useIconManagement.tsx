@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback, type RefObject } from 'react';
+import { useState, useEffect, useCallback, type RefObject } from "react";
 
 // Adjust these import paths
-import type { 
-  DesktopIconDef, 
-  SortState, 
-  SortKeyType, 
-  FileSystemType 
-} from '../components/types';
-import AboutContent from '../windows/About';
-import GamesContent from '../windows/Games';
-import ContactContent from '../windows/Contact';
-import ExplorerWindow from '../components/ExplorerWindow';
+import type {
+  DesktopIconDef,
+  SortState,
+  SortKeyType,
+  FileSystemType,
+} from "../components/types";
+import AboutContent from "../windows/About";
+import GamesContent from "../windows/Games";
+import ContactContent from "../windows/Contact";
+import ExplorerWindow from "../components/ExplorerWindow";
 
 /**
  * Manages all logic for desktop icons: processing, sorting, layout, and interaction.
@@ -24,16 +24,15 @@ export const useIconManagement = (
   data: any,
   openWindow: (iconDef: DesktopIconDef) => void,
   desktopRef: RefObject<HTMLDivElement | null>,
-  cellSize: number,
-  iconSize: string // <-- Receives iconSize as a prop
+  cellSize: number
 ) => {
   const [processedIcons, setProcessedIcons] = useState<DesktopIconDef[]>([]);
   const [iconPositions, setIconPositions] = useState<
     Record<string, { x: number; y: number }>
-    >({});
+  >({});
   const [sortState, setSortState] = useState<SortState>({
-    key: 'name',
-    direction: 'asc',
+    key: "name",
+    direction: "asc",
   });
 
   /**
@@ -48,11 +47,11 @@ export const useIconManagement = (
         ...icon,
         content: (() => {
           switch (icon.id) {
-            case 'about':
+            case "about":
               return <AboutContent info={data.personalInfo} />;
-            case 'contact':
+            case "contact":
               return <ContactContent info={data.personalInfo.contact} />;
-            case 'games':
+            case "games":
               return <GamesContent />;
             default:
               return null;
@@ -65,20 +64,20 @@ export const useIconManagement = (
     iconsWithContent.sort((a, b) => {
       let result = 0;
       switch (sortState.key) {
-        case 'type':
-          result = (a.type || '').localeCompare(b.type || '');
+        case "type":
+          result = (a.type || "").localeCompare(b.type || "");
           break;
-        case 'dateModified':
+        case "dateModified":
           const dateA = a.dateModified ? new Date(a.dateModified).getTime() : 0;
           const dateB = b.dateModified ? new Date(b.dateModified).getTime() : 0;
           result = dateA - dateB;
           break;
-        case 'name':
+        case "name":
         default:
           result = a.title.localeCompare(b.title);
           break;
       }
-      return sortState.direction === 'asc' ? result : -result;
+      return sortState.direction === "asc" ? result : -result;
     });
 
     // 3. Create and inject the ExplorerWindow element
@@ -91,7 +90,7 @@ export const useIconManagement = (
     );
 
     const projectsIconIndex = iconsWithContent.findIndex(
-      (icon) => icon.id === 'projects'
+      (icon) => icon.id === "projects"
     );
     if (projectsIconIndex !== -1) {
       iconsWithContent[projectsIconIndex].content = explorerWindowElement;
@@ -132,8 +131,8 @@ export const useIconManagement = (
   useEffect(() => {
     // Note: The 'isLocked' check will be in Desktop.tsx
     calculateLayout();
-    window.addEventListener('resize', calculateLayout);
-    return () => window.removeEventListener('resize', calculateLayout);
+    window.addEventListener("resize", calculateLayout);
+    return () => window.removeEventListener("resize", calculateLayout);
   }, [calculateLayout]);
 
   /**
@@ -160,10 +159,10 @@ export const useIconManagement = (
       if (prevState.key === key) {
         return {
           key,
-          direction: prevState.direction === 'asc' ? 'desc' : 'asc',
+          direction: prevState.direction === "asc" ? "desc" : "asc",
         };
       }
-      return { key, direction: 'asc' };
+      return { key, direction: "asc" };
     });
   }, []);
 

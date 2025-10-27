@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "../styles/taskbar.css";
-import type { AppWindow, DesktopIconDef } from "./Desktop";
+import type { AppWindow, DesktopIconDef } from "./types";
 
 interface Props {
   /** The complete list of currently open windows. */
@@ -60,7 +60,7 @@ const Taskbar: React.FC<Props> = ({
         if (!prev) return current; // First item is highest so far
         return prev.zIndex > current.zIndex ? prev : current;
       }, null as AppWindow | null);
-    
+
     return focusedWindow?.id || null;
   }, [windows]);
 
@@ -77,9 +77,7 @@ const Taskbar: React.FC<Props> = ({
    * This re-runs only when 'windows' or the memoized 'pinnedIcons' list changes.
    */
   const openUnpinned = useMemo(() => {
-    return windows.filter(
-      (w) => !pinnedIcons.some((p) => p.id === w.id)
-    );
+    return windows.filter((w) => !pinnedIcons.some((p) => p.id === w.id));
   }, [windows, pinnedIcons]);
 
   /**
@@ -113,31 +111,34 @@ const Taskbar: React.FC<Props> = ({
    * This single function handles clicks for all pinned and open items,
    * avoiding the creation of new functions on every render.
    */
-  const handleTaskbarItemClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    // Find the button, whether the user clicked the icon, text, or button
-    const button = target.closest<HTMLButtonElement>('.taskbar-item');
+  const handleTaskbarItemClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement;
+      // Find the button, whether the user clicked the icon, text, or button
+      const button = target.closest<HTMLButtonElement>(".taskbar-item");
 
-    if (!button) {
-      return; // Clicked on a divider or empty space
-    }
-
-    const { id, action } = button.dataset;
-
-    if (!id) {
-      return;
-    }
-
-    // Perform the action defined in the button's data attribute
-    if (action === 'open') {
-      const iconToOpen = pinnedIcons.find(icon => icon.id === id);
-      if (iconToOpen) {
-        openWindow(iconToOpen);
+      if (!button) {
+        return; // Clicked on a divider or empty space
       }
-    } else if (action === 'toggle') {
-      toggleWindow(id);
-    }
-  }, [openWindow, toggleWindow, pinnedIcons]); // Depends on props and memoized data
+
+      const { id, action } = button.dataset;
+
+      if (!id) {
+        return;
+      }
+
+      // Perform the action defined in the button's data attribute
+      if (action === "open") {
+        const iconToOpen = pinnedIcons.find((icon) => icon.id === id);
+        if (iconToOpen) {
+          openWindow(iconToOpen);
+        }
+      } else if (action === "toggle") {
+        toggleWindow(id);
+      }
+    },
+    [openWindow, toggleWindow, pinnedIcons]
+  ); // Depends on props and memoized data
 
   return (
     <div className="taskbar" onClick={handleTaskbarClick}>
@@ -145,14 +146,21 @@ const Taskbar: React.FC<Props> = ({
         to manage all item clicks via event delegation.
       */}
       <div className="taskbar-left" onClick={handleTaskbarItemClick}>
-        <button className="start-btn" onClick={toggleStartMenu} aria-label="Start Menu" />
+        <button
+          className="start-btn"
+          onClick={toggleStartMenu}
+          aria-label="Start Menu"
+        />
         <div className="taskbar-divider" />
 
         {/* Render Pinned Icons */}
         {pinnedIcons.map((icon) => {
           const matchingWindow = windows.find((w) => w.id === icon.id);
           const isOpen = !!matchingWindow;
-          const isFocused = isOpen && !matchingWindow!.minimized && matchingWindow!.id === focusedId;
+          const isFocused =
+            isOpen &&
+            !matchingWindow!.minimized &&
+            matchingWindow!.id === focusedId;
 
           return (
             <button

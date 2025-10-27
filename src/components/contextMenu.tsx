@@ -1,5 +1,5 @@
-import React, { useState, forwardRef, useRef, useLayoutEffect } from 'react';
-import '../styles/contextmenu.css';
+import React, { useState, forwardRef, useRef, useLayoutEffect } from "react";
+import "../styles/contextmenu.css";
 
 export interface ContextMenuItem {
   label?: string;
@@ -19,12 +19,20 @@ interface ContextMenuProps {
  * A recursive component to render a menu list.
  * It renders itself for any submenus.
  */
-const Submenu: React.FC<{ items: ContextMenuItem[]; onClose: () => void }> = ({ items, onClose }) => {
-  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState<number | null>(null);
+const Submenu: React.FC<{ items: ContextMenuItem[]; onClose: () => void }> = ({
+  items,
+  onClose,
+}) => {
+  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState<number | null>(
+    null
+  );
 
   return (
     // This div is the submenu panel
-    <div className="context-menu submenu" onMouseLeave={() => setActiveSubmenuIndex(null)}>
+    <div
+      className="context-menu submenu"
+      onMouseLeave={() => setActiveSubmenuIndex(null)}
+    >
       {items.map((item, index) => {
         const hasSubmenu = item.submenu && item.submenu.length > 0;
         return (
@@ -42,7 +50,7 @@ const Submenu: React.FC<{ items: ContextMenuItem[]; onClose: () => void }> = ({ 
           >
             <span>{item.label}</span>
             {hasSubmenu && <span className="submenu-arrow">▸</span>}
-            
+
             {/* --- RECURSION --- */}
             {/* If this item has a submenu and is active, render another Submenu */}
             {hasSubmenu && activeSubmenuIndex === index && (
@@ -61,7 +69,9 @@ const Submenu: React.FC<{ items: ContextMenuItem[]; onClose: () => void }> = ({ 
  */
 const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
   ({ items, x, y, onClose }, ref) => {
-    const [activeSubmenuIndex, setActiveSubmenuIndex] = useState<number | null>(null);
+    const [activeSubmenuIndex, setActiveSubmenuIndex] = useState<number | null>(
+      null
+    );
     const [position, setPosition] = useState({ x, y });
     const localRef = useRef<HTMLDivElement>(null);
 
@@ -71,13 +81,14 @@ const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
         const rect = localRef.current.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        let newX = x, newY = y;
+        let newX = x,
+          newY = y;
 
         // If it goes off-right, move it left
         if (x + rect.width > viewportWidth) newX = x - rect.width;
         // If it goes off-bottom, move it up
         if (y + rect.height > viewportHeight) newY = y - rect.height;
-        
+
         setPosition({ x: newX, y: newY });
       }
     }, [x, y]);
@@ -86,7 +97,7 @@ const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
     const mergedRef = (node: HTMLDivElement | null) => {
       localRef.current = node;
       if (ref) {
-        if (typeof ref === 'function') ref(node);
+        if (typeof ref === "function") ref(node);
         else ref.current = node;
       }
     };
@@ -105,7 +116,7 @@ const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
           }
 
           const hasSubmenu = item.submenu && item.submenu.length > 0;
-          
+
           return (
             <div
               key={index}
@@ -120,7 +131,7 @@ const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
             >
               <span>{item.label}</span>
               {hasSubmenu && <span className="submenu-arrow">▸</span>}
-              
+
               {/* Render the submenu if this item is active */}
               {hasSubmenu && activeSubmenuIndex === index && (
                 <Submenu items={item.submenu!} onClose={onClose} />

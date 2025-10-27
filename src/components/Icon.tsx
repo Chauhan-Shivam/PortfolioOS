@@ -1,6 +1,6 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
-import '../styles/icon.css';
-import '../styles/global.css';
+import React, { useState, useRef, useCallback, useMemo } from "react";
+import "../styles/icon.css";
+import "../styles/global.css";
 
 interface Props {
   id: string;
@@ -79,38 +79,44 @@ const Icon: React.FC<Props> = ({
    * Memoized event handler for mouse release, ending a drag.
    * This function is attached to the 'document' on mousedown.
    */
-  const handleMouseUp = useCallback((upEvent: MouseEvent) => {
-    // Always remove global listeners on mouse up
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+  const handleMouseUp = useCallback(
+    (upEvent: MouseEvent) => {
+      // Always remove global listeners on mouse up
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
 
-    // If the mouse actually moved, notify the parent of the new position
-    if (hasMoved.current) {
-      // Pass the final raw mouse coordinates for the parent to calculate
-      onPositionChange(id, upEvent.clientX, upEvent.clientY);
-    }
+      // If the mouse actually moved, notify the parent of the new position
+      if (hasMoved.current) {
+        // Pass the final raw mouse coordinates for the parent to calculate
+        onPositionChange(id, upEvent.clientX, upEvent.clientY);
+      }
 
-    // Reset all drag-related state
-    setIsDragging(false);
-    setOffset({ x: 0, y: 0 });
-    hasMoved.current = false; // Reset for the next mousedown
-  }, [id, onPositionChange, handleMouseMove]); // Depends on props and the memoized mousemove handler
+      // Reset all drag-related state
+      setIsDragging(false);
+      setOffset({ x: 0, y: 0 });
+      hasMoved.current = false; // Reset for the next mousedown
+    },
+    [id, onPositionChange, handleMouseMove]
+  ); // Depends on props and the memoized mousemove handler
 
   /**
    * Memoized event handler for the initial mouse down on the icon.
    * This function initiates the drag-and-drop process.
    */
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent text selection or image drag
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault(); // Prevent text selection or image drag
 
-    // Store the starting position of the drag
-    hasMoved.current = false;
-    startMousePos.current = { x: e.clientX, y: e.clientY };
+      // Store the starting position of the drag
+      hasMoved.current = false;
+      startMousePos.current = { x: e.clientX, y: e.clientY };
 
-    // Add global listeners to track mouse movement anywhere on the page
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [handleMouseMove, handleMouseUp]); // Depends on the memoized handlers
+      // Add global listeners to track mouse movement anywhere on the page
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [handleMouseMove, handleMouseUp]
+  ); // Depends on the memoized handlers
 
   /**
    * Memoizes the calculation of the icon's CSS `transform` style.
@@ -124,13 +130,15 @@ const Icon: React.FC<Props> = ({
 
     // Apply the drag offset to the base position
     return {
-      transform: `translate(${initialX + offset.x}px, ${initialY + offset.y}px)`,
+      transform: `translate(${initialX + offset.x}px, ${
+        initialY + offset.y
+      }px)`,
     };
   }, [gridPosition, cellSize, offset]); // Recalculate if grid or offset changes
 
   return (
     <div
-      className={`desktop-icon ${isDragging ? 'dragging' : ''}`}
+      className={`desktop-icon ${isDragging ? "dragging" : ""}`}
       onDoubleClick={onDoubleClick}
       onMouseDown={handleMouseDown}
       style={iconStyle}

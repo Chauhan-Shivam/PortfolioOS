@@ -19,11 +19,7 @@ import IframeContent from "../windows/IFrameContent";
 import "../styles/desktop.css";
 
 // --- Type Imports ---
-import type {
-  AppWindow,
-  DesktopIconDef,
-  SortKeyType,
-} from "./types";
+import type { AppWindow, DesktopIconDef, SortKeyType } from "./types";
 
 // --- Hook Imports ---
 import { usePortfolioData } from "../hooks/usePortfolioData";
@@ -132,23 +128,25 @@ const Desktop: React.FC = () => {
           minimized: false,
           maximized: false,
           zIndex: maxZ + 1,
-          position: { x: initialX + cascadeOffset, y: initialY + cascadeOffset },
+          position: {
+            x: initialX + cascadeOffset,
+            y: initialY + cascadeOffset,
+          },
           size: DEFAULT_WINDOW_SIZE,
         };
 
         return [...prevWindows, newWin];
       });
     },
-    [setBsod, setWindows] // Simplified dependencies
+    [setBsod, setWindows]
   );
 
-  // --- UPDATED THIS SECTION ---
   // 1. Calculate cellSize using the local iconSize state
   const cellSize = useMemo(
     () => (iconSize === "large" ? 120 : iconSize === "small" ? 80 : 100),
     [iconSize]
   );
-  
+
   // 2. Call the hook, which no longer returns iconSize or setIconSize
   const {
     processedIcons,
@@ -160,11 +158,8 @@ const Desktop: React.FC = () => {
     data,
     openWindow,
     desktopRef,
-    cellSize, // Pass the calculated cellSize
-    iconSize  // Pass the local iconSize state
+    cellSize // Pass the calculated cellSize
   );
-  // --- END UPDATED SECTION ---
-
 
   // --- 2. Orchestration Logic (Functions that use multiple hooks) ---
 
@@ -217,7 +212,6 @@ const Desktop: React.FC = () => {
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isLocked, handleClickOutside]);
-  
 
   // --- 3. Memoized Props (Combining data from multiple hooks) ---
 
@@ -226,11 +220,10 @@ const Desktop: React.FC = () => {
    */
   const startMenuItems: StartMenuItem[] = useMemo(() => {
     if (!processedIcons.length) return [];
-    
+
     const items: StartMenuItem[] = [];
     const programs = processedIcons.filter(
-      (icon) =>
-        !icon.filePath && icon.id !== "about" && icon.id !== "contact"
+      (icon) => !icon.filePath && icon.id !== "about" && icon.id !== "contact"
     );
     const files = processedIcons.filter((icon) => icon.filePath);
     const aboutIcon = processedIcons.find((i) => i.id === "about");
@@ -290,9 +283,18 @@ const Desktop: React.FC = () => {
       {
         label: "Sort by",
         submenu: [
-          { label: getSortLabel("Name", "name"), action: () => sortIcons("name") },
-          { label: getSortLabel("Item type", "type"), action: () => sortIcons("type") },
-          { label: getSortLabel("Date modified", "dateModified"), action: () => sortIcons("dateModified") },
+          {
+            label: getSortLabel("Name", "name"),
+            action: () => sortIcons("name"),
+          },
+          {
+            label: getSortLabel("Item type", "type"),
+            action: () => sortIcons("type"),
+          },
+          {
+            label: getSortLabel("Date modified", "dateModified"),
+            action: () => sortIcons("dateModified"),
+          },
         ],
       },
       { label: "Refresh", action: () => {} },

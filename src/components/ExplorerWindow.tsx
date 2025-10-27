@@ -1,6 +1,12 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import '../styles/explorer.css';
-import type { DesktopIconDef } from './types'; // Import the one true type
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
+import "../styles/explorer.css";
+import type { DesktopIconDef } from "./types"; // Import the one true type
 
 // --- TYPE DEFINITIONS ---
 
@@ -28,7 +34,7 @@ type FileSystemType = {
 // --- UPDATED PROP INTERFACE ---
 interface ExplorerWindowProps {
   desktopIcons: DesktopIconDef[]; // <-- CHANGED
-  fileSystem: FileSystemType;    // <-- CHANGED
+  fileSystem: FileSystemType; // <-- CHANGED
   openWindow: (iconDef: DesktopIconDef) => void;
 }
 
@@ -39,20 +45,20 @@ interface ExplorerWindowProps {
  */
 const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   desktopIcons, // <-- CHANGED
-  fileSystem,    // <-- CHANGED
+  fileSystem, // <-- CHANGED
   openWindow,
 }) => {
   // --- STATE & REFS (for UI: resizing, selection) ---
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [gridColumnWidths, setGridColumnWidths] = useState({
-    name: '250px',
-    date: '160px',
-    type: '120px',
+    name: "250px",
+    date: "160px",
+    type: "120px",
   });
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const resizeRef = useRef<{
     initialX: number;
-    colId: 'name' | 'date' | 'type';
+    colId: "name" | "date" | "type";
     initialWidth: number;
     containerWidth: number;
   } | null>(null);
@@ -68,8 +74,8 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
     const desktopFiles: SubFile[] = desktopIcons.map((icon) => ({
       id: `desktop-shortcut-${icon.id}`,
       name: icon.title,
-      type: 'Shortcut',
-      dateModified: '',
+      type: "Shortcut",
+      dateModified: "",
       icon: icon.icon,
       filePath: icon.filePath,
     }));
@@ -95,7 +101,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
    * Internal state for the current folder being viewed.
    */
   const [currentLocation, setCurrentLocation] = useState(
-    () => locations[0] || 'Desktop'
+    () => locations[0] || "Desktop"
   );
 
   /**
@@ -112,9 +118,9 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   const handleOpenFile = useCallback(
     (file: SubFile) => {
       // Case 1: Check if it's a "Desktop Shortcut"
-      if (file.id.startsWith('desktop-shortcut-')) {
-        const originalId = file.id.replace('desktop-shortcut-', '');
-        
+      if (file.id.startsWith("desktop-shortcut-")) {
+        const originalId = file.id.replace("desktop-shortcut-", "");
+
         // Find the icon from the processed desktopIcons list
         const originalIconDef = desktopIcons.find(
           (icon) => icon.id === originalId
@@ -162,7 +168,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   const handleNavClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const target = e.target as HTMLElement;
-      const navItem = target.closest<HTMLElement>('.nav-item');
+      const navItem = target.closest<HTMLElement>(".nav-item");
       const location = navItem?.dataset.location;
 
       if (location) {
@@ -174,9 +180,9 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
 
   const handleFileClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    if (target.classList.contains('resize-handle')) return;
+    if (target.classList.contains("resize-handle")) return;
 
-    const row = target.closest<HTMLElement>('.explorer-row');
+    const row = target.closest<HTMLElement>(".explorer-row");
     const fileId = row?.dataset.fileId;
     setSelectedFile(fileId || null);
   }, []);
@@ -184,7 +190,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   const handleFileDoubleClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const target = e.target as HTMLElement;
-      const row = target.closest<HTMLElement>('.explorer-row');
+      const row = target.closest<HTMLElement>(".explorer-row");
       const fileId = row?.dataset.fileId;
 
       if (fileId) {
@@ -200,7 +206,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   // --- CALLBACKS: COLUMN RESIZING LOGIC ---
 
   const startResize = useCallback(
-    (e: React.MouseEvent, colId: 'name' | 'date' | 'type') => {
+    (e: React.MouseEvent, colId: "name" | "date" | "type") => {
       e.preventDefault();
       setIsResizing(true);
       const currentWidthPx =
@@ -240,18 +246,18 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
 
   useEffect(() => {
     if (isResizing) {
-      document.addEventListener('mousemove', resizeColumn);
-      document.addEventListener('mouseup', stopResize);
-      document.body.style.cursor = 'col-resize';
+      document.addEventListener("mousemove", resizeColumn);
+      document.addEventListener("mouseup", stopResize);
+      document.body.style.cursor = "col-resize";
     } else {
-      document.removeEventListener('mousemove', resizeColumn);
-      document.removeEventListener('mouseup', stopResize);
-      document.body.style.cursor = 'default';
+      document.removeEventListener("mousemove", resizeColumn);
+      document.removeEventListener("mouseup", stopResize);
+      document.body.style.cursor = "default";
     }
     return () => {
-      document.removeEventListener('mousemove', resizeColumn);
-      document.removeEventListener('mouseup', stopResize);
-      document.body.style.cursor = 'default';
+      document.removeEventListener("mousemove", resizeColumn);
+      document.removeEventListener("mouseup", stopResize);
+      document.body.style.cursor = "default";
     };
   }, [isResizing, resizeColumn, stopResize]);
 
@@ -260,7 +266,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
   return (
     <div
       className="explorer-window"
-      style={{ '--grid-columns': gridColumnsStyle } as React.CSSProperties}
+      style={{ "--grid-columns": gridColumnsStyle } as React.CSSProperties}
     >
       {/* Left Navigation Pane */}
       <div className="explorer-nav" onClick={handleNavClick}>
@@ -268,7 +274,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
         {locations.map((loc) => (
           <div
             key={loc}
-            className={`nav-item ${currentLocation === loc ? 'active' : ''}`}
+            className={`nav-item ${currentLocation === loc ? "active" : ""}`}
             data-location={loc}
           >
             {loc}
@@ -288,7 +294,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
               Name
               <div
                 className="resize-handle"
-                onMouseDown={(e) => startResize(e, 'name')}
+                onMouseDown={(e) => startResize(e, "name")}
                 data-column="name"
               />
             </div>
@@ -296,7 +302,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
               Date modified
               <div
                 className="resize-handle"
-                onMouseDown={(e) => startResize(e, 'date')}
+                onMouseDown={(e) => startResize(e, "date")}
                 data-column="date"
               />
             </div>
@@ -312,7 +318,7 @@ const ExplorerWindow: React.FC<ExplorerWindowProps> = ({
               <div
                 key={file.id}
                 className={`explorer-row ${
-                  selectedFile === file.id ? 'selected' : ''
+                  selectedFile === file.id ? "selected" : ""
                 }`}
                 data-file-id={file.id}
               >

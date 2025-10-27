@@ -3,7 +3,7 @@ import { Rnd, type Props as RndProps } from "react-rnd";
 import "../styles/window.css";
 import "../styles/global.css";
 // Assuming AppWindow is defined in a type file, e.g., './Desktop'
-import type { AppWindow } from "./Desktop"; 
+import type { AppWindow } from "./types";
 
 interface WindowProps {
   /** The data object containing the window's state (id, title, position, etc.) */
@@ -50,7 +50,7 @@ const Window: React.FC<WindowProps> = ({
    * The argument types are correctly inferred from RndProps["onDragStop"].
    */
   const handleDragStop: RndProps["onDragStop"] = useCallback(
-    (_e: any, d: { x: any; y: any; }) => {
+    (_e: any, d: { x: any; y: any }) => {
       onDragStop({ x: d.x, y: d.y });
     },
     [onDragStop]
@@ -62,11 +62,14 @@ const Window: React.FC<WindowProps> = ({
    * resolving the previous 'implicitly has an any type' error.
    */
   const handleResizeStop: RndProps["onResizeStop"] = useCallback(
-    (_e: any, _direction: any, ref: { style: { width: any; height: any; }; }, _delta: any, pos: { x: number; y: number; }) => {
-      onResizeStop(
-        { width: ref.style.width, height: ref.style.height },
-        pos
-      );
+    (
+      _e: any,
+      _direction: any,
+      ref: { style: { width: any; height: any } },
+      _delta: any,
+      pos: { x: number; y: number }
+    ) => {
+      onResizeStop({ width: ref.style.width, height: ref.style.height }, pos);
     },
     [onResizeStop]
   );

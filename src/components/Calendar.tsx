@@ -5,7 +5,18 @@ interface Props {
 }
 const DAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTH_NAMES = [
-  "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep", "Oct","Nov","Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 type CalendarView = "days" | "months" | "years";
 
@@ -134,7 +145,7 @@ const Calendar = forwardRef<HTMLDivElement, Props>(({ open }, ref) => {
       setTimeout(() => {
         if (newDate) setDisplayDate(newDate);
         if (newView) setView(newView);
-        setAnimationDirection(null); 
+        setAnimationDirection(null);
       }, 250);
     },
     []
