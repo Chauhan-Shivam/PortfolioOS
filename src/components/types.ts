@@ -30,6 +30,7 @@ export interface DesktopIconDef {
   pinned?: boolean;
   type?: string;
   dateModified?: string;
+  showOnDesktop?: boolean;
 }
 
 /**

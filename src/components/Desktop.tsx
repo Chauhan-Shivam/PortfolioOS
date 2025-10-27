@@ -58,7 +58,6 @@ const Desktop: React.FC = () => {
     handleNextWallpaper,
   } = useDesktopMeta(data);
 
-  // Refs must stay in the component that renders the elements
   const desktopRef = useRef<HTMLDivElement>(null);
   const startMenuRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
@@ -75,7 +74,7 @@ const Desktop: React.FC = () => {
     handleContextMenu,
     toggleStartMenu,
     toggleCalendar,
-    handleClickOutside, // Get the handler from the hook
+    handleClickOutside,
   } = useMenuManagement(startMenuRef, calendarRef, contextMenuRef);
 
   const [iconSize, setIconSize] = useState("medium"); // 'small', 'medium', 'large'
@@ -146,20 +145,15 @@ const Desktop: React.FC = () => {
     [iconSize]
   );
 
-  // 2. Call the hook, which no longer returns iconSize or setIconSize
+  // 2. Call the hook, which now returns two lists of icons
   const {
-    processedIcons,
+    allProcessedIcons, // <-- Get all icons
+    desktopIconsToRender, // <-- Get filtered icons for desktop
     iconPositions,
     sortState,
     sortIcons,
     updateIconPosition,
-  } = useIconManagement(
-    data,
-    openWindow,
-    desktopRef,
-    cellSize,
-    isLocked
-  );
+  } = useIconManagement(data, openWindow, desktopRef, cellSize, isLocked);
 
   // --- 2. Orchestration Logic (Functions that use multiple hooks) ---
 
@@ -219,15 +213,17 @@ const Desktop: React.FC = () => {
    * Memoized list of items for the Start Menu.
    */
   const startMenuItems: StartMenuItem[] = useMemo(() => {
-    if (!processedIcons.length) return [];
+    // --- Use allProcessedIcons ---
+    if (!allProcessedIcons.length) return [];
 
     const items: StartMenuItem[] = [];
-    const programs = processedIcons.filter(
+    const programs = allProcessedIcons.filter(
       (icon) => !icon.filePath && icon.id !== "about" && icon.id !== "contact"
     );
-    const files = processedIcons.filter((icon) => icon.filePath);
-    const aboutIcon = processedIcons.find((i) => i.id === "about");
-    const contactIcon = processedIcons.find((i) => i.id === "contact");
+    const files = allProcessedIcons.filter((icon) => icon.filePath);
+    const aboutIcon = allProcessedIcons.find((i) => i.id === "about");
+    const contactIcon = allProcessedIcons.find((i) => i.id === "contact");
+    // --- End Use allProcessedIcons ---
 
     if (aboutIcon) {
       items.push({
@@ -258,7 +254,7 @@ const Desktop: React.FC = () => {
       })
     );
     return items;
-  }, [processedIcons, openWindow]);
+  }, [allProcessedIcons, openWindow]);
 
   /**
    * Memoized list of items for the right-click context menu.
@@ -325,8 +321,8 @@ const Desktop: React.FC = () => {
             ref={desktopRef}
             onContextMenu={handleContextMenu}
           >
-            {/* Render desktop icons */}
-            {processedIcons.map((icon) => (
+            {/* --- Use desktopIconsToRender --- */}
+            {desktopIconsToRender.map((icon) => (
               <Icon
                 key={icon.id}
                 id={icon.id}
@@ -338,6 +334,7 @@ const Desktop: React.FC = () => {
                 cellSize={cellSize} // <-- Pass the calculated cellSize
               />
             ))}
+            {/* --- End Use desktopIconsToRender --- */}
 
             {/* Render open, non-minimized windows */}
             {windows.map((w) =>
@@ -360,7 +357,7 @@ const Desktop: React.FC = () => {
 
           <Taskbar
             windows={windows}
-            desktopIcons={processedIcons}
+            desktopIcons={allProcessedIcons}
             openWindow={openWindow}
             toggleWindow={handleTaskbarClick}
             showDesktop={showDesktop}
