@@ -15,16 +15,17 @@ import ExplorerWindow from "../components/ExplorerWindow";
 /**
  * Manages all logic for desktop icons: processing, sorting, layout, and interaction.
  * @param data The raw portfolio data.
- * @param openWindow The function from Desktop.tsx to open a new window.
+ *@param openWindow The function from Desktop.tsx to open a new window.
  * @param desktopRef Ref to the main desktop area (for layout).
  * @param cellSize The calculated size of an icon cell.
- * @param iconSize The current size setting ('small', 'medium', 'large').
+ * @param isLocked Whether the desktop is currently locked.
  */
 export const useIconManagement = (
   data: any,
   openWindow: (iconDef: DesktopIconDef) => void,
   desktopRef: RefObject<HTMLDivElement | null>,
-  cellSize: number
+  cellSize: number,
+  isLocked: boolean
 ) => {
   const [processedIcons, setProcessedIcons] = useState<DesktopIconDef[]>([]);
   const [iconPositions, setIconPositions] = useState<
@@ -39,9 +40,8 @@ export const useIconManagement = (
    * This effect processes, sorts, and injects content into icons.
    */
   useEffect(() => {
+    // ... (This whole useEffect is unchanged)
     if (!data) return;
-
-    // 1. Map and inject React component content
     let iconsWithContent: DesktopIconDef[] = data.desktopConfig.icons.map(
       (icon: any) => ({
         ...icon,
@@ -59,8 +59,6 @@ export const useIconManagement = (
         })(),
       })
     );
-
-    // 2. Sort the icons
     iconsWithContent.sort((a, b) => {
       let result = 0;
       switch (sortState.key) {
@@ -79,8 +77,6 @@ export const useIconManagement = (
       }
       return sortState.direction === "asc" ? result : -result;
     });
-
-    // 3. Create and inject the ExplorerWindow element
     const explorerWindowElement = (
       <ExplorerWindow
         desktopIcons={iconsWithContent}
@@ -88,15 +84,12 @@ export const useIconManagement = (
         openWindow={openWindow}
       />
     );
-
     const projectsIconIndex = iconsWithContent.findIndex(
       (icon) => icon.id === "projects"
     );
     if (projectsIconIndex !== -1) {
       iconsWithContent[projectsIconIndex].content = explorerWindowElement;
     }
-
-    // 4. Set the final, sorted list to state
     setProcessedIcons(iconsWithContent);
   }, [data, openWindow, sortState]);
 
@@ -104,6 +97,7 @@ export const useIconManagement = (
    * Calculates the auto-layout grid positions for desktop icons.
    */
   const calculateLayout = useCallback(() => {
+    // This check is now the key:
     if (!desktopRef.current || !processedIcons.length) return;
 
     const desktopHeight = desktopRef.current.clientHeight;
@@ -126,20 +120,25 @@ export const useIconManagement = (
   }, [processedIcons, cellSize, desktopRef]);
 
   /**
-   * Attaches resize listener to recalculate icon layout.
+   * Attaches resize listener and runs layout.
+   * This effect now runs the *initial* layout calculation *after*
+   * processedIcons is set AND the desktop is unlocked.
    */
   useEffect(() => {
-    // Note: The 'isLocked' check will be in Desktop.tsx
-    calculateLayout();
-    window.addEventListener("resize", calculateLayout);
-    return () => window.removeEventListener("resize", calculateLayout);
-  }, [calculateLayout]);
+    // Only run layout logic if the desktop is unlocked and visible
+    if (!isLocked) {
+      calculateLayout();
+      window.addEventListener("resize", calculateLayout);
+      return () => window.removeEventListener("resize", calculateLayout);
+    }
+  }, [calculateLayout, processedIcons, isLocked]);
 
   /**
    * Updates an icon's grid position after a drag-and-drop.
    */
   const updateIconPosition = useCallback(
     (id: string, mouseX: number, mouseY: number) => {
+      // ... (This function is unchanged)
       const rect = desktopRef.current?.getBoundingClientRect();
       if (!rect) return;
       const x = mouseX - rect.left;
@@ -155,6 +154,7 @@ export const useIconManagement = (
    * Sets the sort key, toggling direction if the key is the same.
    */
   const sortIcons = useCallback((key: SortKeyType) => {
+    // ... (This function is unchanged)
     setSortState((prevState) => {
       if (prevState.key === key) {
         return {

@@ -78,7 +78,6 @@ const Desktop: React.FC = () => {
     handleClickOutside, // Get the handler from the hook
   } = useMenuManagement(startMenuRef, calendarRef, contextMenuRef);
 
-  // --- ADDED iconSize state ---
   const [iconSize, setIconSize] = useState("medium"); // 'small', 'medium', 'large'
 
   // The 'openWindow' function must be defined *before* useIconManagement
@@ -158,7 +157,8 @@ const Desktop: React.FC = () => {
     data,
     openWindow,
     desktopRef,
-    cellSize // Pass the calculated cellSize
+    cellSize,
+    isLocked
   );
 
   // --- 2. Orchestration Logic (Functions that use multiple hooks) ---
