@@ -41,7 +41,7 @@ export interface AppWindow {
 
 /**
  * Defines the core properties of a desktop icon, including its
- * associated window content.
+ * associated window content and data for sorting.
  */
 export interface DesktopIconDef {
   id: string;
@@ -50,6 +50,8 @@ export interface DesktopIconDef {
   content: React.ReactNode | null;
   filePath?: string;
   pinned?: boolean;
+  type?: string;
+  dateModified?: string;
 }
 
 /**
@@ -60,6 +62,17 @@ type FileSystemType = {
     files: SubFile[];
   };
 };
+
+/**
+ * Defines the available keys for sorting icons.
+ */
+type SortKeyType = "name" | "type" | "dateModified"; // <-- 1. RENAME THIS
+type SortDirection = "asc" | "desc"; // <-- 2. ADD THIS
+
+interface SortState {
+  key: SortKeyType;
+  direction: SortDirection;
+}
 
 const DEFAULT_WINDOW_SIZE = { width: 640, height: 480 };
 
@@ -74,7 +87,6 @@ const Desktop: React.FC = () => {
   const [data, setData] = useState<any>(null); // Raw JSON data
   const [loading, setLoading] = useState(true);
   const [windows, setWindows] = useState<AppWindow[]>([]); // All open windows
-  const [zCounter, setZCounter] = useState(1); // For window stacking
   const [currentWallpaper, setCurrentWallpaper] = useState("");
   const [iconPositions, setIconPositions] = useState<
     Record<string, { x: number; y: number }>
@@ -90,6 +102,11 @@ const Desktop: React.FC = () => {
   }>({ visible: false, x: 0, y: 0 });
   const [isLocked, setIsLocked] = useState(true); // Start locked
   const [processedIcons, setProcessedIcons] = useState<DesktopIconDef[]>([]);
+  const [sortState, setSortState] = useState<SortState>({
+    // <-- ADD THIS
+    key: "name",
+    direction: "asc",
+  });
 
   // --- Refs ---
   const desktopRef = useRef<HTMLDivElement>(null);
@@ -169,7 +186,7 @@ const Desktop: React.FC = () => {
           ? (desktopRect.height - (DEFAULT_WINDOW_SIZE.height as number)) / 2
           : 100;
 
-        // Determine content (file vs. React component)
+        // Determine content: file path (for PDF/images) or React component
         let content: React.ReactNode;
         if (iconDef.filePath) {
           content = <IframeContent filePath={iconDef.filePath} />;
@@ -193,7 +210,7 @@ const Desktop: React.FC = () => {
         return [...prevWindows, newWin];
       });
     },
-    [] // No dependencies are needed, making this more stable
+    []
   );
 
   const closeWindow = useCallback((id: string) => {
@@ -321,6 +338,27 @@ const Desktop: React.FC = () => {
     setCalendarOpen((c) => !c);
   }, []);
 
+  /**
+   * Sets the sort key, which triggers the processing useEffect to re-sort icons.
+   */
+  /**
+   * Sets the sort key. If the key is the same, it toggles the direction.
+   * If it's a new key, it defaults to ascending.
+   */
+  const sortIcons = useCallback((key: SortKeyType) => {
+    setSortState((prevState) => {
+      // If same key, toggle direction
+      if (prevState.key === key) {
+        return {
+          key,
+          direction: prevState.direction === "asc" ? "desc" : "asc",
+        };
+      }
+      // If new key, default to ascending
+      return { key, direction: "asc" };
+    });
+  }, []);
+
   // --- Layout & Click-Outside Effects ---
 
   /**
@@ -410,14 +448,15 @@ const Desktop: React.FC = () => {
   // --- Memoized Derived Data for Rendering ---
 
   /**
-   * This effect processes the raw JSON data and injects the correct
-   * React components (e.g., AboutContent, ExplorerWindow) into the
-   * icon definitions. This is the "source of truth" for all icons.
+   * This effect processes the raw JSON data. It:
+   * 1. Injects the correct React components (e.g., AboutContent).
+   * 2. Sorts the icons based on the current `sortKey` state.
+   * 3. Sets the final `processedIcons` state.
    */
   useEffect(() => {
     if (!data) return;
 
-    // 1. Create the list with all content *except* the File Explorer.
+    // 1. Map and inject React component content
     let iconsWithContent: DesktopIconDef[] = data.desktopConfig.icons.map(
       (icon: any) => ({
         ...icon,
@@ -429,7 +468,6 @@ const Desktop: React.FC = () => {
               return <ContactContent info={data.personalInfo.contact} />;
             case "games":
               return <GamesContent />;
-            // 'projects' content is deferred
             default:
               return null;
           }
@@ -437,8 +475,32 @@ const Desktop: React.FC = () => {
       })
     );
 
-    // 2. Create the ExplorerWindow element, passing it the *full list*
-    //    of icons it needs to display shortcuts.
+    // 2. Sort the icons based on the current sortKey
+    iconsWithContent.sort((a, b) => {
+      let result = 0; // 0 means equal
+
+      switch (
+        sortState.key // Use sortState.key
+      ) {
+        case "type":
+          result = (a.type || "").localeCompare(b.type || "");
+          break;
+        case "dateModified":
+          const dateA = a.dateModified ? new Date(a.dateModified).getTime() : 0;
+          const dateB = b.dateModified ? new Date(b.dateModified).getTime() : 0;
+          result = dateA - dateB; // Ascending (oldest first)
+          break;
+        case "name":
+        default:
+          result = a.title.localeCompare(b.title); // Ascending (A-Z)
+          break;
+      }
+
+      // Apply direction
+      return sortState.direction === "asc" ? result : -result;
+    });
+
+    // 3. Create and inject the ExplorerWindow element
     const explorerWindowElement = (
       <ExplorerWindow
         desktopIcons={iconsWithContent}
@@ -447,8 +509,6 @@ const Desktop: React.FC = () => {
       />
     );
 
-    // 3. Find the 'projects' icon and inject the ExplorerWindow element
-    //    as its content.
     const projectsIconIndex = iconsWithContent.findIndex(
       (icon) => icon.id === "projects"
     );
@@ -456,9 +516,9 @@ const Desktop: React.FC = () => {
       iconsWithContent[projectsIconIndex].content = explorerWindowElement;
     }
 
-    // 4. Set the final, processed list to state.
+    // 4. Set the final, sorted list to state
     setProcessedIcons(iconsWithContent);
-  }, [data, openWindow]);
+  }, [data, openWindow, sortState]); // Re-run when data or sortState changes
 
   /**
    * Memoized list of items for the Start Menu.
@@ -468,13 +528,11 @@ const Desktop: React.FC = () => {
 
     const items: StartMenuItem[] = [];
 
-    // Filter out 'about' AND 'contact' from the main program list
+    // Filter icons into categories
     const programs = processedIcons.filter(
       (icon) => !icon.filePath && icon.id !== "about" && icon.id !== "contact"
     );
     const files = processedIcons.filter((icon) => icon.filePath);
-
-    // Find the 'about' and 'contact' icons
     const aboutIcon = processedIcons.find((i) => i.id === "about");
     const contactIcon = processedIcons.find((i) => i.id === "contact");
 
@@ -516,19 +574,53 @@ const Desktop: React.FC = () => {
 
     return items;
   }, [processedIcons, openWindow]);
+
   /**
    * Memoized list of items for the right-click context menu.
    */
   const contextMenuItems: ContextMenuItem[] = useMemo(
-    () => [
-      { label: "View", action: () => {} },
-      { label: " ▸ Large Icons", action: () => setIconSize("large") },
-      { label: " ▸ Medium Icons", action: () => setIconSize("medium") },
-      { label: " ▸ Small Icons", action: () => setIconSize("small") },
-      { label: "Refresh", action: () => {} },
-      { label: "Next Wallpaper", action: handleNextWallpaper },
-    ],
-    [handleNextWallpaper]
+    () => {
+      // Helper function to add an arrow indicator (▲/▼) to the active sort item
+      const getSortLabel = (label: string, key: SortKeyType): string => {
+        if (sortState.key === key) {
+          return `${label} ${sortState.direction === "asc" ? "▲" : "▼"}`;
+        }
+        return label;
+      };
+
+      return [
+        {
+          label: "View",
+          submenu: [
+            { label: "Large Icons", action: () => setIconSize("large") },
+            { label: "Medium Icons", action: () => setIconSize("medium") },
+            { label: "Small Icons", action: () => setIconSize("small") },
+          ],
+        },
+        {
+          label: "Sort by",
+          submenu: [
+            {
+              label: getSortLabel("Name", "name"),
+              action: () => sortIcons("name"),
+            },
+            {
+              label: getSortLabel("Item type", "type"),
+              action: () => sortIcons("type"),
+            },
+            {
+              label: getSortLabel("Date modified", "dateModified"),
+              action: () => sortIcons("dateModified"),
+            },
+          ],
+        },
+        { label: "Refresh", action: () => {} },
+        { separator: true },
+        { label: "Next Wallpaper", action: handleNextWallpaper },
+      ];
+    },
+    // Update dependencies to include sortState
+    [handleNextWallpaper, sortIcons, sortState, setIconSize]
   );
 
   // --- Render ---

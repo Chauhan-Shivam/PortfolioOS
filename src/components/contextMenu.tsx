@@ -1,99 +1,136 @@
-import { forwardRef, useMemo, useCallback } from 'react';
-import '../styles/contextmenu.css';
+import React, { useState, forwardRef, useRef, useLayoutEffect } from 'react';
+import '../styles/contextMenu.css';
 
-/**
- * Defines the shape of a single item in the context menu.
- */
 export interface ContextMenuItem {
-  label: string;
-  action: () => void;
+  label?: string;
+  action?: () => void;
+  submenu?: ContextMenuItem[];
+  separator?: boolean;
 }
 
-/**
- * Props for the ContextMenu component.
- */
-interface Props {
-  /** The horizontal (x-coordinate) position of the menu. */
-  x: number;
-  /** The vertical (y-coordinate) position of the menu. */
-  y: number;
-  /** An array of menu items to display. */
+interface ContextMenuProps {
   items: ContextMenuItem[];
-  /** A callback function to close the menu. */
+  x: number;
+  y: number;
   onClose: () => void;
 }
 
 /**
- * A floating context menu component that appears at a specified (x, y) coordinate.
- *
- * It renders a list of clickable items and uses `forwardRef` to allow
- * parent components to get a reference to the main div element,
- * (e.g., for detecting clicks outside to close it).
+ * A recursive component to render a menu list.
+ * It renders itself for any submenus.
  */
-const ContextMenu = forwardRef<HTMLDivElement, Props>(({ x, y, items, onClose }, ref) => {
-  /**
-   * Memoizes the style object.
-   * This prevents a new object from being created on every render,
-   * optimizing performance by providing a stable reference to the `style` prop.
-   */
-  const menuStyle = useMemo(() => ({
-    top: y,
-    left: x,
-  }), [y, x]);
-
-  /**
-   * Handles clicks on the list using event delegation.
-   * This single, stable function is more performant than creating
-   * a new onClick handler for every single <li> item.
-   */
-  const handleClick = useCallback((e: React.MouseEvent<HTMLUListElement>) => {
-    // Find the closest 'li' element that was clicked
-    const target = e.target as HTMLElement;
-    const li = target.closest('li');
-
-    // Ensure a <li> was clicked and it has a data-index attribute
-    if (!li || li.dataset.index === undefined) {
-      return;
-    }
-
-    // Get the item's index from the data attribute
-    const index = parseInt(li.dataset.index, 10);
-    const item = items[index];
-
-    // If the item exists, execute its action and then close the menu
-    if (item) {
-      item.action();
-      onClose();
-    }
-  }, [items, onClose]); // Dependencies: re-create if items or onClose changes
+const Submenu: React.FC<{ items: ContextMenuItem[]; onClose: () => void }> = ({ items, onClose }) => {
+  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState<number | null>(null);
 
   return (
-    <div
-      className="context-menu"
-      style={menuStyle}
-      ref={ref}
-    >
-      {/* Attach the single event handler to the list container */}
-      <ul onClick={handleClick}>
-        {items.map((item, index) => (
-          <li
-            /**
-             * Use a stable key. item.label is better than index,
-             * assuming labels are unique.
-             */
-            key={item.label}
-            /**
-             * Store the index in a data attribute.
-             * The delegated click handler will read this to know which item was clicked.
-             */
-            data-index={index}
+    // This div is the submenu panel
+    <div className="context-menu submenu" onMouseLeave={() => setActiveSubmenuIndex(null)}>
+      {items.map((item, index) => {
+        const hasSubmenu = item.submenu && item.submenu.length > 0;
+        return (
+          <div
+            key={index}
+            className="context-item"
+            onMouseEnter={() => setActiveSubmenuIndex(index)}
+            onClick={(e) => {
+              e.stopPropagation(); // Stop click from bubbling to parent menu
+              if (item.action) {
+                item.action();
+                onClose(); // Close the entire menu tree
+              }
+            }}
           >
-            {item.label}
-          </li>
-        ))}
-      </ul>
+            <span>{item.label}</span>
+            {hasSubmenu && <span className="submenu-arrow">▸</span>}
+            
+            {/* --- RECURSION --- */}
+            {/* If this item has a submenu and is active, render another Submenu */}
+            {hasSubmenu && activeSubmenuIndex === index && (
+              <Submenu items={item.submenu!} onClose={onClose} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
-});
+};
+
+/**
+ * The main ContextMenu component.
+ * It handles positioning and the top-level menu list.
+ */
+const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
+  ({ items, x, y, onClose }, ref) => {
+    const [activeSubmenuIndex, setActiveSubmenuIndex] = useState<number | null>(null);
+    const [position, setPosition] = useState({ x, y });
+    const localRef = useRef<HTMLDivElement>(null);
+
+    // This effect adjusts the menu's position if it overflows the viewport
+    useLayoutEffect(() => {
+      if (localRef.current) {
+        const rect = localRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        let newX = x, newY = y;
+
+        // If it goes off-right, move it left
+        if (x + rect.width > viewportWidth) newX = x - rect.width;
+        // If it goes off-bottom, move it up
+        if (y + rect.height > viewportHeight) newY = y - rect.height;
+        
+        setPosition({ x: newX, y: newY });
+      }
+    }, [x, y]);
+
+    // Merges the forwarded ref (for click-outside) with our local ref (for layout)
+    const mergedRef = (node: HTMLDivElement | null) => {
+      localRef.current = node;
+      if (ref) {
+        if (typeof ref === 'function') ref(node);
+        else ref.current = node;
+      }
+    };
+
+    return (
+      <div
+        className="context-menu"
+        ref={mergedRef}
+        style={{ top: position.y, left: position.x }}
+        onMouseLeave={() => setActiveSubmenuIndex(null)} // Close submenus on leave
+      >
+        {items.map((item, index) => {
+          // Render a separator
+          if (item.separator) {
+            return <hr key={index} className="context-separator" />;
+          }
+
+          const hasSubmenu = item.submenu && item.submenu.length > 0;
+          
+          return (
+            <div
+              key={index}
+              className="context-item"
+              onMouseEnter={() => setActiveSubmenuIndex(index)}
+              onClick={() => {
+                if (item.action) {
+                  item.action();
+                  onClose(); // Close menu on action
+                }
+              }}
+            >
+              <span>{item.label}</span>
+              {hasSubmenu && <span className="submenu-arrow">▸</span>}
+              
+              {/* Render the submenu if this item is active */}
+              {hasSubmenu && activeSubmenuIndex === index && (
+                <Submenu items={item.submenu!} onClose={onClose} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+);
 
 export default ContextMenu;

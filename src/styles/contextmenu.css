@@ -1,26 +1,52 @@
+/* Your existing .context-menu styles */
 .context-menu {
   position: fixed;
   z-index: 10000;
-  background-color: #f0f0f0;
-  border: 1px solid #999;
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-  min-width: 150px;
-  padding: 5px 0;
-  font-size: 12px;
+  background-color: #f1f1f1;
+  border: 1px solid #c0c0c0;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  min-width: 160px;
+  padding: 4px 0;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  color: #000;
+  user-select: none;
 }
 
-.context-menu ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* --- NEW STYLES --- */
+
+/* This positions a submenu relative to its parent item */
+.context-item {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 20px;
+  cursor: default;
 }
 
-.context-menu li {
-  padding: 8px 15px;
-  cursor: pointer;
+.context-item:hover {
+  background-color: #0078d7;
+  color: #fff;
 }
 
-.context-menu li:hover {
-  background-color: #3399ff;
-  color: white;
+/* The arrow on the right */
+.submenu-arrow {
+  margin-left: 10px;
+}
+
+/* This is the submenu panel */
+.context-menu.submenu {
+  /* Position it just outside the parent item */
+  position: absolute;
+  top: -5px; /* Aligns with parent item padding */
+  left: 100%;
+  margin-left: 1px;
+}
+
+/* A horizontal line separator */
+.context-separator {
+  border: 0;
+  border-top: 1px solid #c0c0c0;
+  margin: 4px 0;
 }

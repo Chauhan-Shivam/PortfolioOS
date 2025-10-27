@@ -22,42 +22,56 @@
       {
         "id": "about",
         "title": "About",
-        "icon": "/icons/file.png"
+        "icon": "/icons/file.png",
+        "type": "Text File",
+        "dateModified": "2025-10-21 01:10 PM"
       },
       {
         "id": "contact",
         "title": "Contact",
-        "icon": "/icons/contact.png"
+        "icon": "/icons/contact.png",
+        "type": "Text File",
+        "dateModified": "2025-10-21 01:10 PM"
       },
       {
         "id": "projects",
         "title": "File Explorer",
         "icon": "/icons/folder.png",
-        "pinned": true
+        "pinned": true,
+        "type": "System Folder",
+        "dateModified": "2025-10-20 08:00 AM"
       },
       {
         "id": "games",
         "title": "Games",
         "icon": "/icons/games.png",
-        "pinned": true
+        "pinned": true,
+        "type": "Application",
+        "dateModified": "2025-10-20 08:05 AM"
       },
       {
         "id": "browser",
         "title": "Browser",
         "icon": "/icons/browser.png",
-        "pinned": true
+        "pinned": true,
+        "type": "Application",
+        "dateModified": "2025-10-20 08:05 AM"
       },
       {
         "id": "resume",
         "title": "Shivam's Resume.pdf",
         "icon": "/icons/pdf.png",
-        "filePath": "/Shivam_s_Resume.pdf"
+        "filePath": "/Shivam_s_Resume.pdf",
+        "type": "PDF Document",
+        "dateModified": "2025-10-20 09:00 AM"
       },
       {
         "id": "profile",
         "title": "Shivam.jpg",
         "icon": "/icons/img.png",
-        "filePath": "/Shivam.jpg"
+        "filePath": "/Shivam.jpg",
+        "type": "jpg Image",
+        "dateModified": "2025-08-11 05:45 PM"
       }
     ]
   },
