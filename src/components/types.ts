@@ -15,6 +15,7 @@ export interface AppWindow {
   position: { x: number; y: number };
   size: { width: number | string; height: number | string };
   icon: string;
+  resizable?: boolean;
 }
 
 /**
@@ -31,6 +32,7 @@ export interface DesktopIconDef {
   type?: string;
   dateModified?: string;
   showOnDesktop?: boolean;
+  resizable?: boolean;
 }
 
 /**

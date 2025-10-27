@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import '../styles/minesweeper.css';
+import React, { useState, useEffect } from "react";
+import "../styles/minesweeper.css";
 
 // --- Game Configuration ---
 const ROWS = 9;
@@ -60,8 +60,10 @@ const createBoard = (): CellState[][] => {
           const ny = y + dy;
           const nx = x + dx;
           if (
-            ny >= 0 && ny < ROWS &&
-            nx >= 0 && nx < COLS &&
+            ny >= 0 &&
+            ny < ROWS &&
+            nx >= 0 &&
+            nx < COLS &&
             board[ny][nx].isMine
           ) {
             count++;
@@ -121,8 +123,10 @@ const Minesweeper: React.FC = () => {
    */
   const floodFill = (y: number, x: number, newBoard: CellState[][]) => {
     if (
-      y < 0 || y >= ROWS ||
-      x < 0 || x >= COLS ||
+      y < 0 ||
+      y >= ROWS ||
+      x < 0 ||
+      x >= COLS ||
       newBoard[y][x].isRevealed ||
       newBoard[y][x].isFlagged
     ) {
@@ -187,7 +191,7 @@ const Minesweeper: React.FC = () => {
 
     const newBoard = [...board];
     const targetCell = newBoard[cell.y][cell.x];
-    
+
     if (targetCell.isFlagged) {
       targetCell.isFlagged = false;
       setFlagCount((c) => c - 1);
@@ -199,44 +203,48 @@ const Minesweeper: React.FC = () => {
   };
 
   const getCellDisplay = (cell: CellState) => {
-    if (cell.isFlagged) return '🚩';
+    if (cell.isFlagged) return "🚩";
     if (!cell.isRevealed) return null;
-    if (cell.isMine) return '💣';
+    if (cell.isMine) return "💣";
     if (cell.adjacentMines > 0) return cell.adjacentMines;
     return null;
   };
 
   const getFace = () => {
-    if (isWin) return '😎';
-    if (isGameOver) return '😵';
-    return '😊';
+    if (isWin) return "😎";
+    if (isGameOver) return "😵";
+    return "😊";
   };
 
   return (
+    // Add the outer flex container
     <div className="minesweeper-game">
-      <div className="game-header">
-        <div className="mine-count">{MINES - flagCount}</div>
-        <button className="reset-button" onClick={resetGame}>
-          {getFace()}
-        </button>
-        <div className="timer">{String(time).padStart(3, '0')}</div>
-      </div>
-      <div
-        className="game-board"
-        style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}
-      >
-        {board.flat().map((cell) => (
-          <div
-            key={`${cell.x}-${cell.y}`}
-            className={`cell ${!cell.isRevealed ? 'hidden' : ''} ${
-              cell.isRevealed && cell.isMine ? 'mine' : ''
-            } adj-${cell.adjacentMines}`}
-            onClick={() => handleCellClick(cell)}
-            onContextMenu={(e) => handleCellContext(e, cell)}
-          >
-            {getCellDisplay(cell)}
-          </div>
-        ))}
+      {/* Add the inner container */}
+      <div className="minesweeper-container">
+        <div className="game-header">
+          <div className="mine-count">{MINES - flagCount}</div>
+          <button className="reset-button" onClick={resetGame}>
+            {getFace()}
+          </button>
+          <div className="timer">{String(time).padStart(3, "0")}</div>
+        </div>
+        <div
+          className="game-board"
+          style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}
+        >
+          {board.flat().map((cell) => (
+            <div
+              key={`${cell.x}-${cell.y}`}
+              className={`cell ${!cell.isRevealed ? "hidden" : ""} ${
+                cell.isRevealed && cell.isMine ? "mine" : ""
+              } adj-${cell.adjacentMines}`}
+              onClick={() => handleCellClick(cell)}
+              onContextMenu={(e) => handleCellContext(e, cell)}
+            >
+              {getCellDisplay(cell)}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

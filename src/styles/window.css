@@ -3,58 +3,54 @@
  * Styles for the <Window> component.
  */
 
-/**
- * The main <Rnd> component container.
- * It should NOT have display:flex, as that conflicts
- * with the react-rnd resize handles.
- * Its only job is to be the positioned, resizable box.
- */
 .window {
-  border-radius: 6px;
-  /* Glass effect (optional) */
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px; /* Keep the rounding */
+
+  /* --- APPLY GLASS EFFECT --- */
+  /* Use a semi-transparent white/light blue background for the base */
+  background: rgba(210, 230, 255, 0.6); /* Adjusted transparency */
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px); /* For Safari */
+  /* Use a subtle white border for the highlight */
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); /* Slightly softer shadow */
+  /* --- END GLASS EFFECT --- */
 }
 
 .window.maximized {
   border-radius: 0;
   border: 0;
+  /* Maximize might remove blur for performance, but let's keep it for now */
+  /* backdrop-filter: none; */
+  /* -webkit-backdrop-filter: none; */
 }
 
-/**
- * NEW: The internal flex wrapper.
- * This div *inside* the <Rnd> component handles the
- * internal layout (stacking header and content).
- */
+/* Internal flex wrapper */
 .window-body {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
-  /* This prevents the wrapper from interfering with the parent's border radius */
-  border-radius: inherit; 
-  overflow: hidden; /* Clips the children to the rounded corners */
+  border-radius: inherit;
+  overflow: hidden; /* Crucial for clipping content to rounded corners */
 }
 
-/**
- * Window Header
- * Acts as the drag handle (via dragHandleClassName in <Rnd>)
- */
+/* Window Header */
 .window-header {
   height: 30px;
-  background: rgba(230, 240, 255, 0.8);
-  /* Removed border-radius, as the parent .window-body now handles clipping */
+  /* Make header slightly more opaque than the main window body */
+  /* Or use a gradient like classic Aero */
+  background: linear-gradient(to bottom, rgba(230, 240, 255, 0.85), rgba(200, 220, 245, 0.75));
+  /* background: rgba(220, 235, 255, 0.8); */ /* Simpler alternative */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4); /* Subtle separator */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 5px 0 10px;
   cursor: grab;
-  flex-shrink: 0; /* Prevents the header from shrinking */
-  user-select: none; /* Prevents text selection while dragging */
+  flex-shrink: 0;
+  user-select: none;
 }
-
 .window-header:active {
   cursor: grabbing;
 }
@@ -64,12 +60,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #333;
+  color: #111; /* Darker text for readability */
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6); /* Subtle text shadow */
 }
 
-.window-title-icon {
+.window-title-icon { /* Make sure this is the class used in Window.tsx */
   width: 16px;
   height: 16px;
+  image-rendering: pixelated; /* Keeps icons crisp */
 }
 
 .window-controls {
@@ -82,6 +80,8 @@
   border: 1px solid transparent;
   background-color: transparent;
   font-size: 14px;
+  font-weight: bold; /* Make buttons slightly bolder */
+  color: #333; /* Darker button symbols */
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s;
   display: flex;
@@ -92,30 +92,35 @@
 .window-btn:hover {
   border: 1px solid rgba(0, 0, 0, 0.3);
 }
-.window-btn.minimize:hover {
-  background-color: #aae;
-}
-.window-btn.maximize:hover {
-  background-color: #aea;
-}
-.window-btn.close:hover {
-  background-color: #eaa;
-}
+.window-btn.minimize:hover { background-color: rgba(170, 170, 238, 0.7); } /* Translucent hover */
+.window-btn.maximize:hover { background-color: rgba(170, 238, 170, 0.7); } /* Translucent hover */
+.window-btn.restore:hover { background-color: rgba(170, 238, 170, 0.7); } /* Translucent hover */
+.window-btn.close:hover { background-color: rgba(238, 170, 170, 0.8); } /* Translucent hover */
 
-/**
- * Window Content Area
- * This is the scrollable content area.
- */
+/* Window Content Area */
 .window-content {
-  flex-grow: 1; /* Takes up all remaining vertical space */
-  background-color: #ffffff;
-  overflow: auto; /* Adds scrollbars ONLY if content overflows */
+  flex-grow: 1;
+  /* Make content background slightly transparent to see blur */
+  /* Crucial: if this is fully opaque, the glass effect is hidden */
+  background-color: rgba(255, 255, 255, 0.8);
+  overflow: auto;
   color: #000;
-  
-  /* A flexbox fix to prevent content from overflowing 
-     its container in some browsers */
   min-height: 0;
-  
   /* Optional: Add padding to the content area */
   padding: 10px;
+}
+
+/* Ensure specific app backgrounds don't override transparency */
+.window-content .calculator,
+.window-content .minesweeper-game,
+.window-content .games-launcher {
+    /* If these have opaque backgrounds, make them transparent */
+    /* or add transparency here */
+    /* e.g., background-color: transparent; */
+}
+
+/* Example: Making calculator buttons fit better */
+.window-content .calculator {
+    padding: 5px; /* Adjust padding if needed */
+    background-color: rgba(240, 240, 240, 0.9); /* Slightly transparent calc background */
 }

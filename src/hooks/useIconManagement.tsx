@@ -4,18 +4,17 @@ import React, { useState, useEffect, useCallback, type RefObject } from "react";
 import type {
   DesktopIconDef,
   SortState,
-  SortKeyType,
   FileSystemType,
 } from "../components/types";
+import type { SortKeyType } from "../components/types";
 
 // --- Import ALL potential window content components ---
 import AboutContent from "../windows/About";
-import GamesContent from "../windows/Games";
+import GamesContent from "../windows/GamesContent";
 import ContactContent from "../windows/Contact";
 import ExplorerWindow from "../components/ExplorerWindow";
 import Minesweeper from "../windows/Minesweeper";
 import Calculator from "../windows/Calculator";
-// Add imports for Browser, Flexordle iframe wrapper, etc. as you create them
 
 // --- Create the App Component Map ---
 const appComponentMap: { [key: string]: React.ComponentType<any> } = {
@@ -25,7 +24,6 @@ const appComponentMap: { [key: string]: React.ComponentType<any> } = {
   explorer: ExplorerWindow,
   minesweeper: Minesweeper,
   calculator: Calculator,
-  // Add browser: BrowserComponent, etc. here
 };
 
 /**
@@ -55,49 +53,38 @@ export const useIconManagement = (
   const [iconPositions, setIconPositions] = useState<
     Record<string, { x: number; y: number }>
   >({});
+  // setSortState *is* used below in sortIcons, the linter might be mistaken
   const [sortState, setSortState] = useState<SortState>({
     key: "name",
     direction: "asc",
   });
 
   /**
-   * Processes raw data, injects components using the map, sorts,
-   * and sets the state for all icons.
+   * Processes raw data, injects components, sorts, and sets state.
    */
   useEffect(() => {
+    // ... (rest of useEffect is unchanged)
     if (!data?.desktopConfig?.icons) return;
 
-    // 1. Map raw icon data and inject content using the appComponentMap
     let iconsWithContent: DesktopIconDef[] = data.desktopConfig.icons.map(
       (iconData: any) => {
         const AppComponent = appComponentMap[iconData.id];
         let contentElement: React.ReactNode = null;
-
-        // Special handling for components needing specific props
-        if (AppComponent) {
-          if (iconData.id === "about") {
-            contentElement = <AboutContent info={data.personalInfo} />;
-          } else if (iconData.id === "contact") {
-            contentElement = (
-              <ContactContent info={data.personalInfo.contact} />
-            );
-          } else if (iconData.id === "explorer") {
-            // ExplorerWindow needs the full icon list later, handle specially
-            contentElement = null; // Placeholder
-          } else {
-            // Generic case for simple components
-            contentElement = <AppComponent />;
-          }
+        if (iconData.id === "about") {
+          contentElement = <AboutContent info={data.personalInfo} />;
+        } else if (iconData.id === "contact") {
+          contentElement = <ContactContent info={data.personalInfo.contact} />;
+        } else if (iconData.id === "games") {
+          contentElement = null; // Placeholder
+        } else if (iconData.id === "explorer") {
+          contentElement = null; // Placeholder
+        } else if (AppComponent) {
+          contentElement = <AppComponent />;
         }
-
-        return {
-          ...iconData,
-          content: contentElement,
-        };
+        return { ...iconData, content: contentElement };
       }
     );
 
-    // 2. Sort the icons
     iconsWithContent.sort((a, b) => {
       let result = 0;
       switch (sortState.key) {
@@ -117,6 +104,16 @@ export const useIconManagement = (
       return sortState.direction === "asc" ? result : -result;
     });
 
+    const gamesContentElement = (
+      <GamesContent allIcons={iconsWithContent} openWindow={openWindow} />
+    );
+    const gamesIconIndex = iconsWithContent.findIndex(
+      (icon) => icon.id === "games"
+    );
+    if (gamesIconIndex !== -1) {
+      iconsWithContent[gamesIconIndex].content = gamesContentElement;
+    }
+
     const explorerWindowElement = (
       <ExplorerWindow
         desktopIcons={iconsWithContent}
@@ -124,7 +121,6 @@ export const useIconManagement = (
         openWindow={openWindow}
       />
     );
-
     const explorerIconIndex = iconsWithContent.findIndex(
       (icon) => icon.id === "explorer"
     );
@@ -133,34 +129,22 @@ export const useIconManagement = (
     }
 
     setAllProcessedIcons(iconsWithContent);
-  }, [data, openWindow, sortState]); // Re-run when data, openWindow, or sort criteria change
+  }, [data, openWindow, sortState]);
 
-  /**
-   * Effect to filter ALL icons down to just those shown on the desktop.
-   * This runs whenever allProcessedIcons changes.
-   */
   useEffect(() => {
     setDesktopIconsToRender(
       allProcessedIcons.filter((icon) => icon.showOnDesktop)
     );
   }, [allProcessedIcons]);
 
-  /**
-   * Calculates layout based ONLY on the icons visible on the desktop.
-   */
   const calculateLayout = useCallback(() => {
-    // Use desktopIconsToRender for layout calculation
     if (!desktopRef.current || !desktopIconsToRender.length) return;
-
     const desktopHeight = desktopRef.current.clientHeight;
     const maxRows = Math.floor(desktopHeight / cellSize);
     if (maxRows <= 0) return;
-
     const newPositions: Record<string, { x: number; y: number }> = {};
     let col = 0;
     let row = 0;
-
-    // Iterate over ONLY the icons being rendered on the desktop
     for (const icon of desktopIconsToRender) {
       newPositions[icon.id] = { x: col, y: row };
       row++;
@@ -170,11 +154,8 @@ export const useIconManagement = (
       }
     }
     setIconPositions(newPositions);
-  }, [desktopIconsToRender, cellSize, desktopRef]); // Depend on the filtered list
+  }, [desktopIconsToRender, cellSize, desktopRef]);
 
-  /**
-   * Attaches resize listener and runs layout calculation.
-   */
   useEffect(() => {
     if (!isLocked) {
       calculateLayout();
@@ -183,9 +164,6 @@ export const useIconManagement = (
     }
   }, [calculateLayout, isLocked]);
 
-  /**
-   * Updates an icon's grid position after a drag-and-drop.
-   */
   const updateIconPosition = useCallback(
     (id: string, mouseX: number, mouseY: number) => {
       const rect = desktopRef.current?.getBoundingClientRect();
@@ -214,10 +192,9 @@ export const useIconManagement = (
     });
   }, []);
 
-  // Return values needed by Desktop.tsx
   return {
-    allProcessedIcons, // Needed for Start Menu, Taskbar
-    desktopIconsToRender, // Needed for rendering icons on desktop
+    allProcessedIcons,
+    desktopIconsToRender,
     iconPositions,
     sortState,
     sortIcons,

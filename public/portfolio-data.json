@@ -81,20 +81,22 @@
         "showOnDesktop": true
       },
       {
-        "id": "minesweeper",
-        "title": "Minesweeper",
-        "icon": "/icons/minesweeper.png",
-        "type": "Game",
-        "dateModified": "2025-10-27 03:30 PM",
-        "showOnDesktop": true
-      },
-      {
         "id": "calculator",
         "title": "Calculator",
         "icon": "/icons/calculator.png",
         "type": "Utility",
         "dateModified": "2025-10-27 03:30 PM",
-        "showOnDesktop": true
+        "showOnDesktop": false,
+        "resizable": false
+      },
+      {
+        "id": "minesweeper",
+        "title": "Minesweeper",
+        "icon": "/icons/minesweeper.png",
+        "type": "Game",
+        "dateModified": "2025-10-27 03:35 PM",
+        "showOnDesktop": false,
+        "resizable": false
       }
     ]
   },

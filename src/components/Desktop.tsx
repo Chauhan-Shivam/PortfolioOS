@@ -19,7 +19,7 @@ import IframeContent from "../windows/IFrameContent";
 import "../styles/desktop.css";
 
 // --- Type Imports ---
-import type { AppWindow, DesktopIconDef, SortKeyType } from "./types";
+import type { AppWindow, DesktopIconDef, SortKeyType } from "./types"; // Now importing from central types file
 
 // --- Hook Imports ---
 import { usePortfolioData } from "../hooks/usePortfolioData";
@@ -58,6 +58,7 @@ const Desktop: React.FC = () => {
     handleNextWallpaper,
   } = useDesktopMeta(data);
 
+  // Refs must stay in the component that renders the elements
   const desktopRef = useRef<HTMLDivElement>(null);
   const startMenuRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
@@ -74,7 +75,7 @@ const Desktop: React.FC = () => {
     handleContextMenu,
     toggleStartMenu,
     toggleCalendar,
-    handleClickOutside,
+    handleClickOutside, // Get the handler from the hook
   } = useMenuManagement(startMenuRef, calendarRef, contextMenuRef);
 
   const [iconSize, setIconSize] = useState("medium"); // 'small', 'medium', 'large'
@@ -102,17 +103,32 @@ const Desktop: React.FC = () => {
           );
         }
 
-        // Create a new window
+        // Determine Size based on the resizable flag from the icon data
+        // Default to true if 'resizable' is missing or explicitly true
+        const isResizable = iconDef.resizable ?? true;
+        const initialSize = !isResizable
+          ? { width: "auto", height: "auto" } // Use 'auto' if not resizable
+          : DEFAULT_WINDOW_SIZE; // Use default otherwise
+
+        // Calculate initial position
         const desktopRect = desktopRef.current?.getBoundingClientRect();
         const cascadeOffset = (prevWindows.length % 10) * 30;
-
         const initialX = desktopRect
-          ? (desktopRect.width - (DEFAULT_WINDOW_SIZE.width as number)) / 2
+          ? (desktopRect.width -
+              (initialSize.width === "auto"
+                ? 400
+                : (initialSize.width as number))) /
+            2 // Estimate width if 'auto'
           : 150;
         const initialY = desktopRect
-          ? (desktopRect.height - (DEFAULT_WINDOW_SIZE.height as number)) / 2
+          ? (desktopRect.height -
+              (initialSize.height === "auto"
+                ? 300
+                : (initialSize.height as number))) /
+            2 // Estimate height if 'auto'
           : 100;
 
+        // Determine content (iframe or React component)
         let content: React.ReactNode;
         if (iconDef.filePath) {
           content = <IframeContent filePath={iconDef.filePath} />;
@@ -120,8 +136,11 @@ const Desktop: React.FC = () => {
           content = iconDef.content;
         }
 
+        // Create the new window state object
         const newWin: AppWindow = {
-          ...iconDef,
+          id: iconDef.id, // Ensure all necessary properties are included
+          title: iconDef.title,
+          icon: iconDef.icon,
           content: content,
           minimized: false,
           maximized: false,
@@ -130,13 +149,14 @@ const Desktop: React.FC = () => {
             x: initialX + cascadeOffset,
             y: initialY + cascadeOffset,
           },
-          size: DEFAULT_WINDOW_SIZE,
+          size: initialSize,
+          resizable: isResizable, // Store the resizable flag in the window state
         };
 
         return [...prevWindows, newWin];
       });
     },
-    [setBsod, setWindows]
+    [setBsod, setWindows] // Dependencies
   );
 
   // 1. Calculate cellSize using the local iconSize state
@@ -147,8 +167,8 @@ const Desktop: React.FC = () => {
 
   // 2. Call the hook, which now returns two lists of icons
   const {
-    allProcessedIcons, // <-- Get all icons
-    desktopIconsToRender, // <-- Get filtered icons for desktop
+    allProcessedIcons, // Get all icons
+    desktopIconsToRender, // Get filtered icons for desktop
     iconPositions,
     sortState,
     sortIcons,
@@ -213,7 +233,7 @@ const Desktop: React.FC = () => {
    * Memoized list of items for the Start Menu.
    */
   const startMenuItems: StartMenuItem[] = useMemo(() => {
-    // --- Use allProcessedIcons ---
+    // Use allProcessedIcons
     if (!allProcessedIcons.length) return [];
 
     const items: StartMenuItem[] = [];
@@ -223,7 +243,6 @@ const Desktop: React.FC = () => {
     const files = allProcessedIcons.filter((icon) => icon.filePath);
     const aboutIcon = allProcessedIcons.find((i) => i.id === "about");
     const contactIcon = allProcessedIcons.find((i) => i.id === "contact");
-    // --- End Use allProcessedIcons ---
 
     if (aboutIcon) {
       items.push({
@@ -254,7 +273,7 @@ const Desktop: React.FC = () => {
       })
     );
     return items;
-  }, [allProcessedIcons, openWindow]);
+  }, [allProcessedIcons, openWindow]); // Dependency updated
 
   /**
    * Memoized list of items for the right-click context menu.
@@ -298,7 +317,6 @@ const Desktop: React.FC = () => {
       { label: "Next Wallpaper", action: handleNextWallpaper },
     ];
   }, [handleNextWallpaper, sortIcons, sortState, setIconSize]);
-
   // --- 4. Render ---
 
   if (loading) {
@@ -321,7 +339,7 @@ const Desktop: React.FC = () => {
             ref={desktopRef}
             onContextMenu={handleContextMenu}
           >
-            {/* --- Use desktopIconsToRender --- */}
+            {/* Render desktop icons */}
             {desktopIconsToRender.map((icon) => (
               <Icon
                 key={icon.id}
@@ -331,10 +349,9 @@ const Desktop: React.FC = () => {
                 onDoubleClick={() => openWindow(icon)}
                 gridPosition={iconPositions[icon.id] || { x: 0, y: 0 }}
                 onPositionChange={updateIconPosition}
-                cellSize={cellSize} // <-- Pass the calculated cellSize
+                cellSize={cellSize} // Pass the calculated cellSize
               />
             ))}
-            {/* --- End Use desktopIconsToRender --- */}
 
             {/* Render open, non-minimized windows */}
             {windows.map((w) =>
@@ -350,6 +367,8 @@ const Desktop: React.FC = () => {
                   minimize={() => minimizeWindow(w.id)}
                   toggleMaximize={() => toggleMaximize(w.id)}
                   bringToFront={() => bringToFront(w.id)}
+                  // Pass the resizable flag from the window's state
+                  resizable={w.resizable}
                 />
               ) : null
             )}
@@ -357,7 +376,7 @@ const Desktop: React.FC = () => {
 
           <Taskbar
             windows={windows}
-            desktopIcons={allProcessedIcons}
+            desktopIcons={allProcessedIcons} // Pass ALL icons here
             openWindow={openWindow}
             toggleWindow={handleTaskbarClick}
             showDesktop={showDesktop}
@@ -369,7 +388,7 @@ const Desktop: React.FC = () => {
           <StartMenu
             ref={startMenuRef}
             open={startOpen}
-            items={startMenuItems}
+            items={startMenuItems} // Based on all icons
             userName={data.personalInfo.name}
             onClose={() => setStartOpen(false)}
             onLock={handleLock}

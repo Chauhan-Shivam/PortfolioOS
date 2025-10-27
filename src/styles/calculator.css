@@ -1,60 +1,113 @@
 .calculator {
-  width: 240px;
-  background-color: #222;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  background-color: #f0f0f0;
+  border: 1px solid #a0a0a0;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  width: fit-content; /* Let content determine width */
+  padding: 0; /* Remove padding, handled internally now */
+  user-select: none;
+  overflow: hidden; /* Ensure rounded corners clip content */
 }
 
+/* Non-functional Menu Bar */
+.calc-menu-bar {
+  background-color: #f0f0f0;
+  padding: 3px 8px;
+  border-bottom: 1px solid #d0d0d0;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+  color: #333;
+}
+.calc-menu-bar span {
+  margin-right: 15px;
+  cursor: default; /* Indicate non-interactive */
+}
+.calc-menu-bar span:hover {
+  background-color: #d8eaff; /* Subtle hover like real menus */
+}
+
+
 .calc-display {
-  background-color: #222;
-  color: #fff;
-  font-size: 40px;
-  font-weight: 300;
+  background-color: #e0eefc;
+  border: 1px solid #95b7d7; /* Use solid border for better control */
+  border-radius: 3px;
+  color: #000;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 28px;
+  font-weight: normal;
   text-align: right;
-  padding: 20px;
+  padding: 5px 10px;
+  margin: 10px; /* Margin around display */
+  min-height: 40px;
   box-sizing: border-box;
   word-wrap: break-word;
   word-break: break-all;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Inner shadow */
 }
 
 .calc-keypad {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: minmax(60px, auto);
+  /* 5 columns needed for the basic layout */
+  grid-template-columns: repeat(5, 55px); /* Slightly wider buttons */
+  grid-auto-rows: 35px; /* Slightly shorter buttons */
+  gap: 5px;
+  padding: 0 10px 10px 10px; /* Padding for the keypad area */
 }
 
 .calc-keypad button {
-  background-color: #505050;
-  color: #fff;
-  font-size: 20px;
-  border: 1px solid #222;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px; /* Adjust font size */
+  color: #000;
+  border: 1px solid #a0a0a0;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #fdfdfd 0%, #e8e8e8 100%);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   outline: none;
+  padding: 0; /* Remove default padding */
+}
+
+.calc-keypad button:hover {
+  border-color: #7da2ce;
+  background: linear-gradient(to bottom, #f0f8ff 0%, #d8eaff 100%);
 }
 
 .calc-keypad button:active {
-  background-color: #707070;
+  background: linear-gradient(to bottom, #d8eaff 0%, #c0dfff 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.calc-keypad .key-function {
-  background-color: #3b3b3b;
-}
-.calc-keypad .key-function:active {
-  background-color: #5a5a5a;
+/* Memory buttons have slightly lighter text */
+.calc-keypad button:nth-child(-n+5) { /* Targets first 5 buttons (MC to M-) */
+  color: #333;
+  font-size: 13px;
 }
 
+/* Special styling for operators if needed (Win7 basic uses same style) */
 .calc-keypad .key-operator {
-  background-color: #ff9500;
-  color: #fff;
-  font-size: 24px;
-}
-.calc-keypad .key-operator:active {
-  background-color: #ffb143;
+  font-size: 16px;
 }
 
+/* Backspace, CE, C */
+.calc-keypad button:nth-child(n+6):nth-child(-n+8) { /* Targets ←, CE, C */
+  color: #e00; /* Red text */
+}
+
+/* Equals button spans rows and has different style */
+.calc-keypad .key-equals {
+  grid-row: span 2; /* Make it span 2 rows */
+  height: auto; /* Allow height to adjust */
+  background: linear-gradient(to bottom, #e0f0ff 0%, #c0e0ff 100%);
+}
+.calc-keypad .key-equals:hover {
+   background: linear-gradient(to bottom, #d0e8ff 0%, #b0d8ff 100%);
+}
+.calc-keypad .key-equals:active {
+   background: linear-gradient(to bottom, #b0d8ff 0%, #90c8ff 100%);
+}
+
+/* Zero button spans columns */
 .calc-keypad .key-zero {
-  grid-column: 1 / span 2;
-  text-align: left;
-  padding-left: 23px;
+  grid-column: span 2; /* Span 2 columns */
+  width: auto; /* Allow width to adjust */
 }

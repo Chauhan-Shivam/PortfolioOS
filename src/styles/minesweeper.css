@@ -1,85 +1,120 @@
 .minesweeper-game {
-  background-color: #c0c0c0; /* Classic Windows grey */
-  border: 3px outset #fff;
+  width: 100%;
+  height: 100%;
+  display: flex; /* Centers the inner container */
+  align-items: center; /* Vertically center */
+  justify-content: center; /* Horizontally center */
+  background-color: #ECE9D8; /* Windows XP/7 background color */
+}
+
+.minesweeper-container {
+  margin: 0; /* Centered by parent flex */
+  width: fit-content;
+  height: fit-content;
+  background-color: #ECE9D8; /* Match outer background */
+  border: 1px solid #808080; /* Thinner outer border */
   padding: 10px;
   display: flex;
   flex-direction: column;
   user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow */
 }
 
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #c0c0c0;
-  border: 3px inset #7b7b7b;
+  background-color: #ECE9D8; /* Match background */
+  border: 1px solid #808080; /* Thin border */
+  border-top-color: #FFFFFF; /* Inner shadow effect */
+  border-left-color: #FFFFFF;
   padding: 5px;
   margin-bottom: 10px;
 }
 
 .mine-count,
 .timer {
-  font-family: 'Segment7', 'Courier New', monospace; /* 7-segment display font */
+  font-family: 'Segment7', 'Courier New', monospace; /* Keep 7-segment */
   background-color: #000;
   color: #ff0000;
-  padding: 5px 8px;
-  border: 2px inset #fff;
-  font-size: 24px;
+  padding: 2px 4px; /* Smaller padding */
+  border: 1px solid #808080; /* Sunken border */
+  border-top-color: #000000;
+  border-left-color: #000000;
+  font-size: 22px; /* Slightly smaller */
+  line-height: 1; /* Adjust line height */
+  min-width: 45px; /* Ensure 3 digits fit */
+  text-align: center;
 }
 
 .reset-button {
-  font-size: 24px;
-  border: 3px outset #fff;
-  background-color: #c0c0c0;
-  width: 40px;
-  height: 40px;
+  font-size: 20px; /* Slightly smaller face */
+  border: 1px solid #808080; /* Standard button border */
+  border-top-color: #FFFFFF;
+  border-left-color: #FFFFFF;
+  background-color: #ECE9D8; /* Match background */
+  width: 28px; /* Smaller button */
+  height: 28px; /* Smaller button */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  padding: 0;
 }
+
 .reset-button:active {
-  border-style: inset;
+  border-color: #000000; /* Invert border for pressed effect */
+  border-top-color: #808080;
+  border-left-color: #808080;
+  background-color: #dcdad0; /* Slightly darker */
 }
 
 .game-board {
   display: grid;
-  border: 3px inset #7b7b7b;
+  border: 1px solid #808080; /* Sunken border */
+  border-top-color: #000000;
+  border-left-color: #000000;
 }
 
 .cell {
-  width: 30px;
-  height: 30px;
-  background-color: #c0c0c0;
-  border: 3px outset #fff;
+  width: 24px; /* Slightly smaller cells */
+  height: 24px; /* Slightly smaller cells */
+  background-color: #C0C0C0; /* Classic grey */
+  border: 1px solid #808080; /* Standard button border */
+  border-top-color: #FFFFFF;
+  border-left-color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 16px;
+  font-family: 'Tahoma', sans-serif; /* Windows font */
+  font-size: 14px; /* Smaller numbers */
   cursor: pointer;
 }
 
 .cell.hidden:active {
-  border-style: inset;
-  background-color: #aaa;
+  border-color: #000000; /* Invert border */
+  border-top-color: #808080;
+  border-left-color: #808080;
+  background-color: #b0b0b0; /* Darker grey */
 }
 
 .cell:not(.hidden) {
-  border: 1px solid #7b7b7b;
-  background-color: #c0c0c0;
+  border: 1px solid #bdbdbd; /* Flat border for revealed cells */
+  background-color: #C0C0C0;
 }
 
 .cell.mine {
   background-color: #ff0000;
+  /* Add a mine icon background later if desired */
 }
 
 /* Colors for adjacent mine numbers */
-.cell.adj-1 { color: #0000ff; }
-.cell.adj-2 { color: #008000; }
-.cell.adj-3 { color: #ff0000; }
-.cell.adj-4 { color: #000080; }
-.cell.adj-5 { color: #800000; }
-.cell.adj-6 { color: #008080; }
-.cell.adj-7 { color: #000000; }
-.cell.adj-8 { color: #808080; }
+.cell.adj-1 { color: #0000ff; } /* Blue */
+.cell.adj-2 { color: #008000; } /* Green */
+.cell.adj-3 { color: #ff0000; } /* Red */
+.cell.adj-4 { color: #000080; } /* Dark Blue */
+.cell.adj-5 { color: #800000; } /* Maroon */
+.cell.adj-6 { color: #008080; } /* Teal */
+.cell.adj-7 { color: #000000; } /* Black */
+.cell.adj-8 { color: #808080; } /* Grey */
