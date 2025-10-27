@@ -25,6 +25,11 @@
         "icon": "/icons/file.png"
       },
       {
+        "id": "contact",
+        "title": "Contact",
+        "icon": "/icons/contact.png"
+      },
+      {
         "id": "projects",
         "title": "File Explorer",
         "icon": "/icons/folder.png",
