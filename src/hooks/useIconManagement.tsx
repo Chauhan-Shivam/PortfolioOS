@@ -21,6 +21,8 @@ import Calculator from "../windows/Calculator";
 const appComponentMap: { [key: string]: React.ComponentType<any> } = {
   about: AboutContent,
   contact: ContactContent,
+  games: GamesContent,
+  explorer: ExplorerWindow,
   minesweeper: Minesweeper,
   calculator: Calculator,
   // Add browser: BrowserComponent, etc. here

@@ -1,0 +1,60 @@
+.calculator {
+  width: 240px;
+  background-color: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.calc-display {
+  background-color: #222;
+  color: #fff;
+  font-size: 40px;
+  font-weight: 300;
+  text-align: right;
+  padding: 20px;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.calc-keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(60px, auto);
+}
+
+.calc-keypad button {
+  background-color: #505050;
+  color: #fff;
+  font-size: 20px;
+  border: 1px solid #222;
+  cursor: pointer;
+  outline: none;
+}
+
+.calc-keypad button:active {
+  background-color: #707070;
+}
+
+.calc-keypad .key-function {
+  background-color: #3b3b3b;
+}
+.calc-keypad .key-function:active {
+  background-color: #5a5a5a;
+}
+
+.calc-keypad .key-operator {
+  background-color: #ff9500;
+  color: #fff;
+  font-size: 24px;
+}
+.calc-keypad .key-operator:active {
+  background-color: #ffb143;
+}
+
+.calc-keypad .key-zero {
+  grid-column: 1 / span 2;
+  text-align: left;
+  padding-left: 23px;
+}
