@@ -5,6 +5,8 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
+
+// --- Component Imports ---
 import Icon from "./Icon";
 import Window from "./Window";
 import Taskbar from "./Taskbar";
@@ -13,144 +15,77 @@ import BlueScreen from "./BlueScreen";
 import Calendar from "./Calendar";
 import ContextMenu, { type ContextMenuItem } from "./contextMenu";
 import Lockscreen from "./Lockscreen";
+import IframeContent from "../windows/IFrameContent";
 import "../styles/desktop.css";
 
-// Import window content components
-import AboutContent from "../windows/About";
-import GamesContent from "../windows/Games";
-import ContactContent from "../windows/Contact";
-import IframeContent from "../windows/IFrameContent";
-import ExplorerWindow, { type SubFile } from "../components/ExplorerWindow";
+// --- Type Imports ---
+import type {
+  AppWindow,
+  DesktopIconDef,
+  SortKeyType,
+} from "./types";
 
-// --- Interfaces & Constants ---
+// --- Hook Imports ---
+import { usePortfolioData } from "../hooks/usePortfolioData";
+import { useWindowManagement } from "../hooks/useWindowManagement";
+import { useDesktopMeta } from "../hooks/useDesktopMeta";
+import { useMenuManagement } from "../hooks/useMenuManagement";
+import { useIconManagement } from "../hooks/useIconManagement";
 
-/**
- * Defines the state for an open application window.
- */
-export interface AppWindow {
-  id: string;
-  title: string;
-  content: React.ReactNode;
-  minimized: boolean;
-  maximized: boolean;
-  zIndex: number;
-  position: { x: number; y: number };
-  size: { width: number | string; height: number | string };
-  icon: string;
-}
-
-/**
- * Defines the core properties of a desktop icon, including its
- * associated window content and data for sorting.
- */
-export interface DesktopIconDef {
-  id: string;
-  title: string;
-  icon: string;
-  content: React.ReactNode | null;
-  filePath?: string;
-  pinned?: boolean;
-  type?: string;
-  dateModified?: string;
-}
-
-/**
- * Defines the structure of the file system, used by ExplorerWindow.
- */
-type FileSystemType = {
-  [key: string]: {
-    files: SubFile[];
-  };
-};
-
-/**
- * Defines the available keys for sorting icons.
- */
-type SortKeyType = "name" | "type" | "dateModified"; // <-- 1. RENAME THIS
-type SortDirection = "asc" | "desc"; // <-- 2. ADD THIS
-
-interface SortState {
-  key: SortKeyType;
-  direction: SortDirection;
-}
-
+// --- Constants ---
 const DEFAULT_WINDOW_SIZE = { width: 640, height: 480 };
 
 // --- Component ---
-
-/**
- * The main Desktop component.
- * Manages all windows, icons, menus, and global state for the OS simulation.
- */
 const Desktop: React.FC = () => {
-  // --- State ---
-  const [data, setData] = useState<any>(null); // Raw JSON data
-  const [loading, setLoading] = useState(true);
-  const [windows, setWindows] = useState<AppWindow[]>([]); // All open windows
-  const [currentWallpaper, setCurrentWallpaper] = useState("");
-  const [iconPositions, setIconPositions] = useState<
-    Record<string, { x: number; y: number }>
-  >({});
-  const [iconSize, setIconSize] = useState("medium"); // 'small', 'medium', 'large'
-  const [bsod, setBsod] = useState(false); // Blue Screen of Death
-  const [startOpen, setStartOpen] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{
-    visible: boolean;
-    x: number;
-    y: number;
-  }>({ visible: false, x: 0, y: 0 });
-  const [isLocked, setIsLocked] = useState(true); // Start locked
-  const [processedIcons, setProcessedIcons] = useState<DesktopIconDef[]>([]);
-  const [sortState, setSortState] = useState<SortState>({
-    // <-- ADD THIS
-    key: "name",
-    direction: "asc",
-  });
+  // --- 1. Initialize Hooks ---
 
-  // --- Refs ---
+  const { data, loading } = usePortfolioData();
+  const {
+    windows,
+    setWindows,
+    bringToFront,
+    closeWindow,
+    minimizeWindow,
+    toggleMaximize,
+    handleWindowDrag,
+    handleWindowResize,
+    showDesktop,
+  } = useWindowManagement();
+
+  const {
+    currentWallpaper,
+    bsod,
+    setBsod,
+    isLocked,
+    setIsLocked,
+    handleUnlock,
+    handleNextWallpaper,
+  } = useDesktopMeta(data);
+
+  // Refs must stay in the component that renders the elements
   const desktopRef = useRef<HTMLDivElement>(null);
   const startMenuRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
-  // --- Derived Values ---
-  const cellSize = iconSize === "large" ? 120 : iconSize === "small" ? 80 : 100;
+  const {
+    startOpen,
+    setStartOpen,
+    calendarOpen,
+    setCalendarOpen,
+    contextMenu,
+    setContextMenu,
+    closeContextMenu,
+    handleContextMenu,
+    toggleStartMenu,
+    toggleCalendar,
+    handleClickOutside, // Get the handler from the hook
+  } = useMenuManagement(startMenuRef, calendarRef, contextMenuRef);
 
-  // --- Core Handlers (Memoized) ---
+  // --- ADDED iconSize state ---
+  const [iconSize, setIconSize] = useState("medium"); // 'small', 'medium', 'large'
 
-  /**
-   * Updates an icon's grid position after a drag-and-drop.
-   */
-  const updateIconPosition = useCallback(
-    (id: string, mouseX: number, mouseY: number) => {
-      const rect = desktopRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const x = mouseX - rect.left;
-      const y = mouseY - rect.top;
-      const gridX = Math.max(0, Math.round(x / cellSize));
-      const gridY = Math.max(0, Math.round(y / cellSize));
-      setIconPositions((prev) => ({ ...prev, [id]: { x: gridX, y: gridY } }));
-    },
-    [cellSize]
-  );
-
-  /**
-   * Brings a specific window to the front (highest z-index).
-   */
-  const bringToFront = useCallback((id: string) => {
-    setWindows((prevWindows) => {
-      // Find the current highest z-index
-      const maxZ = Math.max(...prevWindows.map((w) => w.zIndex), 0);
-      return prevWindows.map((w) =>
-        w.id === id ? { ...w, zIndex: maxZ + 1, minimized: false } : w
-      );
-    });
-  }, []);
-
-  /**
-   * Opens a new window or focuses an existing one.
-   */
+  // The 'openWindow' function must be defined *before* useIconManagement
   const openWindow = useCallback(
     (iconDef: DesktopIconDef) => {
       // Handle special "apps" that don't open windows
@@ -166,17 +101,15 @@ const Desktop: React.FC = () => {
         const found = prevWindows.find((w) => w.id === iconDef.id);
         const maxZ = Math.max(...prevWindows.map((w) => w.zIndex), 0);
 
-        // Case 1: Window is already open
         if (found) {
-          // Just bring it to the front
+          // Window is already open, just bring it to front
           return prevWindows.map((w) =>
             w.id === found.id ? { ...w, zIndex: maxZ + 1, minimized: false } : w
           );
         }
 
-        // Case 2: Create a new window
+        // Create a new window
         const desktopRect = desktopRef.current?.getBoundingClientRect();
-        // The stagger/cascade effect:
         const cascadeOffset = (prevWindows.length % 10) * 30;
 
         const initialX = desktopRect
@@ -186,7 +119,6 @@ const Desktop: React.FC = () => {
           ? (desktopRect.height - (DEFAULT_WINDOW_SIZE.height as number)) / 2
           : 100;
 
-        // Determine content: file path (for PDF/images) or React component
         let content: React.ReactNode;
         if (iconDef.filePath) {
           content = <IframeContent filePath={iconDef.filePath} />;
@@ -199,85 +131,58 @@ const Desktop: React.FC = () => {
           content: content,
           minimized: false,
           maximized: false,
-          zIndex: maxZ + 1, // Use the new highest z-index
-          position: {
-            x: initialX + cascadeOffset,
-            y: initialY + cascadeOffset,
-          },
+          zIndex: maxZ + 1,
+          position: { x: initialX + cascadeOffset, y: initialY + cascadeOffset },
           size: DEFAULT_WINDOW_SIZE,
         };
 
         return [...prevWindows, newWin];
       });
     },
-    []
+    [setBsod, setWindows] // Simplified dependencies
   );
 
-  const closeWindow = useCallback((id: string) => {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
-  }, []);
-
-  const minimizeWindow = useCallback((id: string) => {
-    setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, minimized: true } : w))
-    );
-  }, []);
-
-  const toggleMaximize = useCallback(
-    (id: string) => {
-      setWindows((prev) =>
-        prev.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w))
-      );
-      bringToFront(id);
-    },
-    [bringToFront]
+  // --- UPDATED THIS SECTION ---
+  // 1. Calculate cellSize using the local iconSize state
+  const cellSize = useMemo(
+    () => (iconSize === "large" ? 120 : iconSize === "small" ? 80 : 100),
+    [iconSize]
   );
-
-  const handleWindowDrag = useCallback(
-    (id: string, newPosition: { x: number; y: number }) => {
-      setWindows((prev) =>
-        prev.map((w) => (w.id === id ? { ...w, position: newPosition } : w))
-      );
-    },
-    []
+  
+  // 2. Call the hook, which no longer returns iconSize or setIconSize
+  const {
+    processedIcons,
+    iconPositions,
+    sortState,
+    sortIcons,
+    updateIconPosition,
+  } = useIconManagement(
+    data,
+    openWindow,
+    desktopRef,
+    cellSize, // Pass the calculated cellSize
+    iconSize  // Pass the local iconSize state
   );
+  // --- END UPDATED SECTION ---
 
-  const handleWindowResize = useCallback(
-    (
-      id: string,
-      newSize: { width: string; height: string },
-      newPosition: { x: number; y: number }
-    ) => {
-      setWindows((prev) =>
-        prev.map((w) =>
-          w.id === id
-            ? {
-                ...w,
-                size: {
-                  width: parseInt(newSize.width),
-                  height: parseInt(newSize.height),
-                },
-                position: newPosition,
-              }
-            : w
-        )
-      );
-    },
-    []
-  );
 
+  // --- 2. Orchestration Logic (Functions that use multiple hooks) ---
+
+  /**
+   * Locks the screen. This action needs to coordinate multiple hooks.
+   */
   const handleLock = useCallback(() => {
     setIsLocked(true);
     setStartOpen(false);
     setCalendarOpen(false);
     setContextMenu((c) => ({ ...c, visible: false }));
+    // Minimize all windows (uses useWindowManagement's setWindows)
     setWindows((prev) => prev.map((w) => ({ ...w, minimized: true })));
-  }, []);
+  }, [setIsLocked, setStartOpen, setCalendarOpen, setContextMenu, setWindows]);
 
-  const handleUnlock = useCallback(() => {
-    setIsLocked(false);
-  }, []);
-
+  /**
+   * Handles clicking a window's icon in the taskbar.
+   */
   const handleTaskbarClick = useCallback(
     (id: string) => {
       const win = windows.find((w) => w.id === id);
@@ -303,240 +208,34 @@ const Desktop: React.FC = () => {
     [windows, bringToFront, minimizeWindow]
   );
 
-  const showDesktop = useCallback(() => {
-    setWindows((prev) => prev.map((w) => ({ ...w, minimized: true })));
-  }, []);
-
-  const handleNextWallpaper = useCallback(() => {
-    const wallpapers = data?.desktopConfig?.wallpapers;
-    if (!wallpapers || wallpapers.length === 0) return;
-    const currentIndex = wallpapers.findIndex(
-      (wp: any) => wp.path === currentWallpaper
-    );
-    const nextIndex = (currentIndex + 1) % wallpapers.length;
-    setCurrentWallpaper(wallpapers[nextIndex].path);
-  }, [data, currentWallpaper]);
-
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextMenu({ visible: true, x: e.clientX, y: e.clientY });
-  }, []);
-
-  const closeContextMenu = useCallback(() => {
-    setContextMenu((prev) => ({ ...prev, visible: false }));
-  }, []);
-
-  const toggleStartMenu = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCalendarOpen(false);
-    setStartOpen((s) => !s);
-  }, []);
-
-  const toggleCalendar = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setStartOpen(false);
-    setCalendarOpen((c) => !c);
-  }, []);
-
   /**
-   * Sets the sort key, which triggers the processing useEffect to re-sort icons.
-   */
-  /**
-   * Sets the sort key. If the key is the same, it toggles the direction.
-   * If it's a new key, it defaults to ascending.
-   */
-  const sortIcons = useCallback((key: SortKeyType) => {
-    setSortState((prevState) => {
-      // If same key, toggle direction
-      if (prevState.key === key) {
-        return {
-          key,
-          direction: prevState.direction === "asc" ? "desc" : "asc",
-        };
-      }
-      // If new key, default to ascending
-      return { key, direction: "asc" };
-    });
-  }, []);
-
-  // --- Layout & Click-Outside Effects ---
-
-  /**
-   * Fetch initial portfolio data on component mount.
-   */
-  useEffect(() => {
-    fetch("/portfolio-data.json")
-      .then((res) => res.json())
-      .then((jsonData) => {
-        setData(jsonData);
-        if (jsonData.desktopConfig?.wallpapers?.length > 0) {
-          setCurrentWallpaper(jsonData.desktopConfig.wallpapers[0].path);
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Failed to load portfolio data:", error);
-        setLoading(false);
-      });
-  }, []);
-
-  /**
-   * Calculates the auto-layout grid positions for desktop icons.
-   */
-  const calculateLayout = useCallback(() => {
-    if (!desktopRef.current || !processedIcons.length) return;
-
-    const desktopHeight = desktopRef.current.clientHeight;
-    const maxRows = Math.floor(desktopHeight / cellSize);
-    if (maxRows <= 0) return;
-
-    const newPositions: Record<string, { x: number; y: number }> = {};
-    let col = 0;
-    let row = 0;
-
-    for (const icon of processedIcons) {
-      newPositions[icon.id] = { x: col, y: row };
-      row++;
-      if (row >= maxRows) {
-        row = 0;
-        col++;
-      }
-    }
-    setIconPositions(newPositions);
-  }, [processedIcons, cellSize]);
-
-  /**
-   * Attaches resize listener to recalculate icon layout.
-   */
-  useEffect(() => {
-    if (!isLocked) {
-      calculateLayout();
-      window.addEventListener("resize", calculateLayout);
-    }
-    return () => window.removeEventListener("resize", calculateLayout);
-  }, [calculateLayout, isLocked]);
-
-  /**
-   * Handles global clicks to close open menus.
-   */
-  const handleClickOutside = useCallback(
-    (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (startMenuRef.current && !startMenuRef.current.contains(target)) {
-        setStartOpen(false);
-      }
-      if (calendarRef.current && !calendarRef.current.contains(target)) {
-        setCalendarOpen(false);
-      }
-      if (contextMenuRef.current && !contextMenuRef.current.contains(target)) {
-        closeContextMenu();
-      }
-    },
-    [closeContextMenu]
-  );
-
-  /**
-   * Attaches/removes the global click listener.
+   * Attaches/removes the global click listener based on lock state.
    */
   useEffect(() => {
     if (!isLocked) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [handleClickOutside, isLocked]);
+  }, [isLocked, handleClickOutside]);
+  
 
-  // --- Memoized Derived Data for Rendering ---
-
-  /**
-   * This effect processes the raw JSON data. It:
-   * 1. Injects the correct React components (e.g., AboutContent).
-   * 2. Sorts the icons based on the current `sortKey` state.
-   * 3. Sets the final `processedIcons` state.
-   */
-  useEffect(() => {
-    if (!data) return;
-
-    // 1. Map and inject React component content
-    let iconsWithContent: DesktopIconDef[] = data.desktopConfig.icons.map(
-      (icon: any) => ({
-        ...icon,
-        content: (() => {
-          switch (icon.id) {
-            case "about":
-              return <AboutContent info={data.personalInfo} />;
-            case "contact":
-              return <ContactContent info={data.personalInfo.contact} />;
-            case "games":
-              return <GamesContent />;
-            default:
-              return null;
-          }
-        })(),
-      })
-    );
-
-    // 2. Sort the icons based on the current sortKey
-    iconsWithContent.sort((a, b) => {
-      let result = 0; // 0 means equal
-
-      switch (
-        sortState.key // Use sortState.key
-      ) {
-        case "type":
-          result = (a.type || "").localeCompare(b.type || "");
-          break;
-        case "dateModified":
-          const dateA = a.dateModified ? new Date(a.dateModified).getTime() : 0;
-          const dateB = b.dateModified ? new Date(b.dateModified).getTime() : 0;
-          result = dateA - dateB; // Ascending (oldest first)
-          break;
-        case "name":
-        default:
-          result = a.title.localeCompare(b.title); // Ascending (A-Z)
-          break;
-      }
-
-      // Apply direction
-      return sortState.direction === "asc" ? result : -result;
-    });
-
-    // 3. Create and inject the ExplorerWindow element
-    const explorerWindowElement = (
-      <ExplorerWindow
-        desktopIcons={iconsWithContent}
-        fileSystem={data.fileSystem as FileSystemType}
-        openWindow={openWindow}
-      />
-    );
-
-    const projectsIconIndex = iconsWithContent.findIndex(
-      (icon) => icon.id === "projects"
-    );
-    if (projectsIconIndex !== -1) {
-      iconsWithContent[projectsIconIndex].content = explorerWindowElement;
-    }
-
-    // 4. Set the final, sorted list to state
-    setProcessedIcons(iconsWithContent);
-  }, [data, openWindow, sortState]); // Re-run when data or sortState changes
+  // --- 3. Memoized Props (Combining data from multiple hooks) ---
 
   /**
    * Memoized list of items for the Start Menu.
    */
   const startMenuItems: StartMenuItem[] = useMemo(() => {
     if (!processedIcons.length) return [];
-
+    
     const items: StartMenuItem[] = [];
-
-    // Filter icons into categories
     const programs = processedIcons.filter(
-      (icon) => !icon.filePath && icon.id !== "about" && icon.id !== "contact"
+      (icon) =>
+        !icon.filePath && icon.id !== "about" && icon.id !== "contact"
     );
     const files = processedIcons.filter((icon) => icon.filePath);
     const aboutIcon = processedIcons.find((i) => i.id === "about");
     const contactIcon = processedIcons.find((i) => i.id === "contact");
 
-    // Add 'About' if it exists
     if (aboutIcon) {
       items.push({
         label: aboutIcon.title,
@@ -544,8 +243,6 @@ const Desktop: React.FC = () => {
         action: () => openWindow(aboutIcon),
       });
     }
-
-    // Add 'Contact' if it exists
     if (contactIcon) {
       items.push({
         label: contactIcon.title,
@@ -553,8 +250,6 @@ const Desktop: React.FC = () => {
         action: () => openWindow(contactIcon),
       });
     }
-
-    // Add the rest of the programs
     programs.forEach((icon) =>
       items.push({
         label: icon.title,
@@ -562,8 +257,6 @@ const Desktop: React.FC = () => {
         action: () => openWindow(icon),
       })
     );
-
-    // Add files
     files.forEach((file) =>
       items.push({
         label: file.title,
@@ -571,59 +264,44 @@ const Desktop: React.FC = () => {
         action: () => openWindow(file),
       })
     );
-
     return items;
   }, [processedIcons, openWindow]);
 
   /**
    * Memoized list of items for the right-click context menu.
    */
-  const contextMenuItems: ContextMenuItem[] = useMemo(
-    () => {
-      // Helper function to add an arrow indicator (▲/▼) to the active sort item
-      const getSortLabel = (label: string, key: SortKeyType): string => {
-        if (sortState.key === key) {
-          return `${label} ${sortState.direction === "asc" ? "▲" : "▼"}`;
-        }
-        return label;
-      };
+  const contextMenuItems: ContextMenuItem[] = useMemo(() => {
+    const getSortLabel = (label: string, key: SortKeyType): string => {
+      if (sortState.key === key) {
+        return `${label} ${sortState.direction === "asc" ? "▲" : "▼"}`;
+      }
+      return label;
+    };
 
-      return [
-        {
-          label: "View",
-          submenu: [
-            { label: "Large Icons", action: () => setIconSize("large") },
-            { label: "Medium Icons", action: () => setIconSize("medium") },
-            { label: "Small Icons", action: () => setIconSize("small") },
-          ],
-        },
-        {
-          label: "Sort by",
-          submenu: [
-            {
-              label: getSortLabel("Name", "name"),
-              action: () => sortIcons("name"),
-            },
-            {
-              label: getSortLabel("Item type", "type"),
-              action: () => sortIcons("type"),
-            },
-            {
-              label: getSortLabel("Date modified", "dateModified"),
-              action: () => sortIcons("dateModified"),
-            },
-          ],
-        },
-        { label: "Refresh", action: () => {} },
-        { separator: true },
-        { label: "Next Wallpaper", action: handleNextWallpaper },
-      ];
-    },
-    // Update dependencies to include sortState
-    [handleNextWallpaper, sortIcons, sortState, setIconSize]
-  );
+    return [
+      {
+        label: "View",
+        submenu: [
+          { label: "Large Icons", action: () => setIconSize("large") },
+          { label: "Medium Icons", action: () => setIconSize("medium") },
+          { label: "Small Icons", action: () => setIconSize("small") },
+        ],
+      },
+      {
+        label: "Sort by",
+        submenu: [
+          { label: getSortLabel("Name", "name"), action: () => sortIcons("name") },
+          { label: getSortLabel("Item type", "type"), action: () => sortIcons("type") },
+          { label: getSortLabel("Date modified", "dateModified"), action: () => sortIcons("dateModified") },
+        ],
+      },
+      { label: "Refresh", action: () => {} },
+      { separator: true },
+      { label: "Next Wallpaper", action: handleNextWallpaper },
+    ];
+  }, [handleNextWallpaper, sortIcons, sortState, setIconSize]);
 
-  // --- Render ---
+  // --- 4. Render ---
 
   if (loading) {
     return <div>Loading Portfolio...</div>;
@@ -636,11 +314,7 @@ const Desktop: React.FC = () => {
   return (
     <div
       className="desktop"
-      style={
-        {
-          backgroundImage: `url(${currentWallpaper})`,
-        } as React.CSSProperties
-      }
+      style={{ backgroundImage: `url(${currentWallpaper})` }}
     >
       {!isLocked && (
         <>
@@ -659,7 +333,7 @@ const Desktop: React.FC = () => {
                 onDoubleClick={() => openWindow(icon)}
                 gridPosition={iconPositions[icon.id] || { x: 0, y: 0 }}
                 onPositionChange={updateIconPosition}
-                cellSize={cellSize}
+                cellSize={cellSize} // <-- Pass the calculated cellSize
               />
             ))}
 

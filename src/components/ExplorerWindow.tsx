@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import '../styles/explorer.css';
-import type { DesktopIconDef } from './Desktop'; // Import the one true type
+import type { DesktopIconDef } from './types'; // Import the one true type
 
 // --- TYPE DEFINITIONS ---
 
